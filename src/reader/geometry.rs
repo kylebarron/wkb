@@ -7,6 +7,7 @@ use crate::error::WKBResult;
 use crate::reader::{
     GeometryCollection, LineString, MultiLineString, MultiPoint, MultiPolygon, Point, Polygon,
 };
+use crate::Endianness;
 use geo_traits::{
     Dimensions, GeometryTrait, UnimplementedLine, UnimplementedRect, UnimplementedTriangle,
 };
@@ -25,39 +26,33 @@ pub enum Wkb<'a> {
 impl<'a> Wkb<'a> {
     pub fn try_new(buf: &'a [u8]) -> WKBResult<Self> {
         let mut reader = Cursor::new(buf);
-        let byte_order = reader.read_u8().unwrap();
+        let byte_order = Endianness::try_from(reader.read_u8()?).unwrap();
         let wkb_type = WKBType::from_buffer(buf)?;
 
         use Dimensions::*;
 
         let out = match wkb_type {
-            WKBType::Point => Wkb::Point(Point::new(buf, byte_order.into(), 0, Xy)),
-            WKBType::LineString => Wkb::LineString(LineString::new(buf, byte_order.into(), 0, Xy)),
-            WKBType::Polygon => Wkb::Polygon(Polygon::new(buf, byte_order.into(), 0, Xy)),
-            WKBType::MultiPoint => Wkb::MultiPoint(MultiPoint::new(buf, byte_order.into(), Xy)),
+            WKBType::Point => Wkb::Point(Point::new(buf, byte_order, 0, Xy)),
+            WKBType::LineString => Wkb::LineString(LineString::new(buf, byte_order, 0, Xy)),
+            WKBType::Polygon => Wkb::Polygon(Polygon::new(buf, byte_order, 0, Xy)),
+            WKBType::MultiPoint => Wkb::MultiPoint(MultiPoint::new(buf, byte_order, Xy)),
             WKBType::MultiLineString => {
-                Wkb::MultiLineString(MultiLineString::new(buf, byte_order.into(), Xy))
+                Wkb::MultiLineString(MultiLineString::new(buf, byte_order, Xy))
             }
-            WKBType::MultiPolygon => {
-                Wkb::MultiPolygon(MultiPolygon::new(buf, byte_order.into(), Xy))
-            }
+            WKBType::MultiPolygon => Wkb::MultiPolygon(MultiPolygon::new(buf, byte_order, Xy)),
             WKBType::GeometryCollection => {
-                Wkb::GeometryCollection(GeometryCollection::try_new(buf, byte_order.into(), Xy)?)
+                Wkb::GeometryCollection(GeometryCollection::try_new(buf, byte_order, Xy)?)
             }
-            WKBType::PointZ => Wkb::Point(Point::new(buf, byte_order.into(), 0, Xyz)),
-            WKBType::LineStringZ => {
-                Wkb::LineString(LineString::new(buf, byte_order.into(), 0, Xyz))
-            }
-            WKBType::PolygonZ => Wkb::Polygon(Polygon::new(buf, byte_order.into(), 0, Xyz)),
-            WKBType::MultiPointZ => Wkb::MultiPoint(MultiPoint::new(buf, byte_order.into(), Xyz)),
+            WKBType::PointZ => Wkb::Point(Point::new(buf, byte_order, 0, Xyz)),
+            WKBType::LineStringZ => Wkb::LineString(LineString::new(buf, byte_order, 0, Xyz)),
+            WKBType::PolygonZ => Wkb::Polygon(Polygon::new(buf, byte_order, 0, Xyz)),
+            WKBType::MultiPointZ => Wkb::MultiPoint(MultiPoint::new(buf, byte_order, Xyz)),
             WKBType::MultiLineStringZ => {
-                Wkb::MultiLineString(MultiLineString::new(buf, byte_order.into(), Xyz))
+                Wkb::MultiLineString(MultiLineString::new(buf, byte_order, Xyz))
             }
-            WKBType::MultiPolygonZ => {
-                Wkb::MultiPolygon(MultiPolygon::new(buf, byte_order.into(), Xyz))
-            }
+            WKBType::MultiPolygonZ => Wkb::MultiPolygon(MultiPolygon::new(buf, byte_order, Xyz)),
             WKBType::GeometryCollectionZ => {
-                Wkb::GeometryCollection(GeometryCollection::try_new(buf, byte_order.into(), Xyz)?)
+                Wkb::GeometryCollection(GeometryCollection::try_new(buf, byte_order, Xyz)?)
             }
         };
         Ok(out)

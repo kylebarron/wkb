@@ -20,11 +20,12 @@ pub fn multi_line_string_wkb_size(geom: &impl MultiLineStringTrait) -> usize {
 pub fn write_multi_line_string<W: Write>(
     mut writer: W,
     geom: &impl MultiLineStringTrait<T = f64>,
+    endianness: Endianness,
 ) -> WKBResult<()> {
     use geo_traits::Dimensions;
 
     // Byte order
-    writer.write_u8(Endianness::LittleEndian.into())?;
+    writer.write_u8(endianness.into())?;
 
     match geom.dim() {
         Dimensions::Xy | Dimensions::Unknown(2) => {
@@ -40,7 +41,7 @@ pub fn write_multi_line_string<W: Write>(
     writer.write_u32::<LittleEndian>(geom.num_line_strings().try_into().unwrap())?;
 
     for line_string in geom.line_strings() {
-        write_line_string(&mut writer, &line_string)?;
+        write_line_string(&mut writer, &line_string, endianness)?;
     }
 
     Ok(())

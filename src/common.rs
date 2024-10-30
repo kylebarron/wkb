@@ -54,28 +54,10 @@ impl WKBType {
 }
 
 /// Endianness
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default, TryFromPrimitive, IntoPrimitive)]
+#[repr(u8)]
 pub enum Endianness {
-    BigEndian,
-    LittleEndian,
-}
-
-impl From<u8> for Endianness {
-    fn from(value: u8) -> Self {
-        match value {
-            0 => Endianness::BigEndian,
-            1 => Endianness::LittleEndian,
-            _ => panic!("Unexpected byte order."),
-        }
-    }
-}
-
-impl From<Endianness> for u8 {
-    fn from(value: Endianness) -> Self {
-        use Endianness::*;
-        match value {
-            BigEndian => 0,
-            LittleEndian => 1,
-        }
-    }
+    BigEndian = 0,
+    #[default]
+    LittleEndian = 1,
 }
