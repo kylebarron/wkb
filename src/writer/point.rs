@@ -6,7 +6,7 @@ use core::f64;
 use geo_traits::{CoordTrait, PointTrait};
 use std::io::Write;
 
-/// The byte length of a WKBPoint
+/// The byte length of a Point
 pub fn point_wkb_size(dim: geo_traits::Dimensions) -> usize {
     let header = 1 + 4;
     let coords = dim.size() * 8;

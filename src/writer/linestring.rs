@@ -5,7 +5,7 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use geo_traits::{CoordTrait, LineStringTrait};
 use std::io::Write;
 
-/// The byte length of a WKBLineString
+/// The byte length of a LineString
 pub fn line_string_wkb_size(geom: &impl LineStringTrait) -> usize {
     let header = 1 + 4 + 4;
     let each_coord = geom.dim().size() * 8;

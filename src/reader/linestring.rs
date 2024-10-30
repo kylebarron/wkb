@@ -2,7 +2,7 @@ use std::io::Cursor;
 
 use byteorder::{BigEndian, LittleEndian, ReadBytesExt};
 
-use crate::reader::coord::WKBCoord;
+use crate::reader::coord::Coord;
 use crate::Endianness;
 use geo_traits::Dimensions;
 use geo_traits::{LineStringTrait, MultiLineStringTrait};
@@ -13,20 +13,20 @@ const HEADER_BYTES: u64 = 5;
 ///
 /// This has been preprocessed, so access to any internal coordinate is `O(1)`.
 #[derive(Debug, Clone, Copy)]
-pub struct WKBLineString<'a> {
+pub struct LineString<'a> {
     buf: &'a [u8],
     byte_order: Endianness,
 
     /// The number of points in this LineString WKB
     num_points: usize,
 
-    /// This offset will be 0 for a single WKBLineString but it will be non zero for a
-    /// WKBLineString contained within a WKBMultiLineString
+    /// This offset will be 0 for a single LineString but it will be non zero for a
+    /// LineString contained within a MultiLineString
     offset: u64,
     dim: Dimensions,
 }
 
-impl<'a> WKBLineString<'a> {
+impl<'a> LineString<'a> {
     pub fn new(buf: &'a [u8], byte_order: Endianness, offset: u64, dim: Dimensions) -> Self {
         let mut reader = Cursor::new(buf);
         reader.set_position(HEADER_BYTES + offset);
@@ -69,9 +69,9 @@ impl<'a> WKBLineString<'a> {
     }
 }
 
-impl<'a> LineStringTrait for WKBLineString<'a> {
+impl<'a> LineStringTrait for LineString<'a> {
     type T = f64;
-    type CoordType<'b> = WKBCoord<'a> where Self: 'b;
+    type CoordType<'b> = Coord<'a> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
         self.dim
@@ -82,7 +82,7 @@ impl<'a> LineStringTrait for WKBLineString<'a> {
     }
 
     unsafe fn coord_unchecked(&self, i: usize) -> Self::CoordType<'_> {
-        WKBCoord::new(
+        Coord::new(
             self.buf,
             self.byte_order,
             self.coord_offset(i.try_into().unwrap()),
@@ -91,9 +91,9 @@ impl<'a> LineStringTrait for WKBLineString<'a> {
     }
 }
 
-impl<'a> LineStringTrait for &'a WKBLineString<'a> {
+impl<'a> LineStringTrait for &'a LineString<'a> {
     type T = f64;
-    type CoordType<'b> = WKBCoord<'a> where Self: 'b;
+    type CoordType<'b> = Coord<'a> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
         self.dim
@@ -104,7 +104,7 @@ impl<'a> LineStringTrait for &'a WKBLineString<'a> {
     }
 
     unsafe fn coord_unchecked(&self, i: usize) -> Self::CoordType<'_> {
-        WKBCoord::new(
+        Coord::new(
             self.buf,
             self.byte_order,
             self.coord_offset(i.try_into().unwrap()),
@@ -113,9 +113,9 @@ impl<'a> LineStringTrait for &'a WKBLineString<'a> {
     }
 }
 
-impl<'a> MultiLineStringTrait for WKBLineString<'a> {
+impl<'a> MultiLineStringTrait for LineString<'a> {
     type T = f64;
-    type LineStringType<'b> = WKBLineString<'a> where Self: 'b;
+    type LineStringType<'b> = LineString<'a> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
         self.dim
@@ -130,9 +130,9 @@ impl<'a> MultiLineStringTrait for WKBLineString<'a> {
     }
 }
 
-impl<'a> MultiLineStringTrait for &'a WKBLineString<'a> {
+impl<'a> MultiLineStringTrait for &'a LineString<'a> {
     type T = f64;
-    type LineStringType<'b> = WKBLineString<'a> where Self: 'b;
+    type LineStringType<'b> = LineString<'a> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
         self.dim

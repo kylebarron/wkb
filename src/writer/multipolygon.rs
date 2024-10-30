@@ -6,7 +6,7 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use geo_traits::MultiPolygonTrait;
 use std::io::Write;
 
-/// The byte length of a WKBMultiPolygon
+/// The byte length of a MultiPolygon
 pub fn multi_polygon_wkb_size(geom: &impl MultiPolygonTrait) -> usize {
     let mut sum = 1 + 4 + 4;
     for polygon in geom.polygons() {

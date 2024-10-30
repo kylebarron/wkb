@@ -14,13 +14,13 @@ const WKB_POLYGON_TYPE: u32 = 3;
 ///
 /// This has been preprocessed, so access to any internal coordinate is `O(1)`.
 #[derive(Debug, Clone)]
-pub struct WKBPolygon<'a> {
+pub struct Polygon<'a> {
     wkb_linear_rings: Vec<WKBLinearRing<'a>>,
     // #[allow(dead_code)]
     dim: Dimensions,
 }
 
-impl<'a> WKBPolygon<'a> {
+impl<'a> Polygon<'a> {
     pub fn new(buf: &'a [u8], byte_order: Endianness, offset: u64, dim: Dimensions) -> Self {
         let mut reader = Cursor::new(buf);
         reader.set_position(1 + offset);
@@ -83,7 +83,7 @@ impl<'a> WKBPolygon<'a> {
     }
 }
 
-impl<'a> PolygonTrait for WKBPolygon<'a> {
+impl<'a> PolygonTrait for Polygon<'a> {
     type T = f64;
     type RingType<'b> = WKBLinearRing<'a>where Self: 'b;
 
@@ -113,7 +113,7 @@ impl<'a> PolygonTrait for WKBPolygon<'a> {
     }
 }
 
-impl<'a> PolygonTrait for &'a WKBPolygon<'a> {
+impl<'a> PolygonTrait for &'a Polygon<'a> {
     type T = f64;
     type RingType<'b> = WKBLinearRing<'a> where Self: 'b;
 
@@ -143,9 +143,9 @@ impl<'a> PolygonTrait for &'a WKBPolygon<'a> {
     }
 }
 
-impl<'a> MultiPolygonTrait for WKBPolygon<'a> {
+impl<'a> MultiPolygonTrait for Polygon<'a> {
     type T = f64;
-    type PolygonType<'b> = WKBPolygon<'a> where Self: 'b;
+    type PolygonType<'b> = Polygon<'a> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
         self.dim
@@ -160,9 +160,9 @@ impl<'a> MultiPolygonTrait for WKBPolygon<'a> {
     }
 }
 
-impl<'a> MultiPolygonTrait for &'a WKBPolygon<'a> {
+impl<'a> MultiPolygonTrait for &'a Polygon<'a> {
     type T = f64;
-    type PolygonType<'b> = WKBPolygon<'a> where Self: 'b;
+    type PolygonType<'b> = Polygon<'a> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
         self.dim

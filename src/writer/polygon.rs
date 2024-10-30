@@ -5,7 +5,7 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use geo_traits::{CoordTrait, LineStringTrait, PolygonTrait};
 use std::io::Write;
 
-/// The byte length of a WKBPolygon
+/// The byte length of a Polygon
 pub fn polygon_wkb_size(geom: &impl PolygonTrait) -> usize {
     let mut sum = 1 + 4 + 4;
 

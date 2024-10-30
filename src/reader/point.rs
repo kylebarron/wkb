@@ -1,4 +1,4 @@
-use crate::reader::coord::WKBCoord;
+use crate::reader::coord::Coord;
 use crate::Endianness;
 use geo_traits::Dimensions;
 use geo_traits::{CoordTrait, MultiPointTrait, PointTrait};
@@ -9,18 +9,18 @@ use geo_traits::{CoordTrait, MultiPointTrait, PointTrait};
 ///
 /// See page 66 of <https://portal.ogc.org/files/?artifact_id=25355>.
 #[derive(Debug, Clone, Copy)]
-pub struct WKBPoint<'a> {
-    /// The coordinate inside this WKBPoint
-    coord: WKBCoord<'a>,
+pub struct Point<'a> {
+    /// The coordinate inside this Point
+    coord: Coord<'a>,
     dim: Dimensions,
     is_empty: bool,
 }
 
-impl<'a> WKBPoint<'a> {
+impl<'a> Point<'a> {
     pub fn new(buf: &'a [u8], byte_order: Endianness, offset: u64, dim: Dimensions) -> Self {
         // The space of the byte order + geometry type
         let offset = offset + 5;
-        let coord = WKBCoord::new(buf, byte_order, offset, dim);
+        let coord = Coord::new(buf, byte_order, offset, dim);
         let is_empty =
             (0..coord.dim().size()).all(|coord_dim| coord.nth_unchecked(coord_dim).is_nan());
         Self {
@@ -46,9 +46,9 @@ impl<'a> WKBPoint<'a> {
     }
 }
 
-impl<'a> PointTrait for WKBPoint<'a> {
+impl<'a> PointTrait for Point<'a> {
     type T = f64;
-    type CoordType<'b> = WKBCoord<'a> where Self: 'b;
+    type CoordType<'b> = Coord<'a> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
         self.dim
@@ -63,9 +63,9 @@ impl<'a> PointTrait for WKBPoint<'a> {
     }
 }
 
-impl<'a> PointTrait for &WKBPoint<'a> {
+impl<'a> PointTrait for &Point<'a> {
     type T = f64;
-    type CoordType<'b> = WKBCoord<'a> where Self: 'b;
+    type CoordType<'b> = Coord<'a> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
         self.dim
@@ -80,9 +80,9 @@ impl<'a> PointTrait for &WKBPoint<'a> {
     }
 }
 
-impl<'a> MultiPointTrait for WKBPoint<'a> {
+impl<'a> MultiPointTrait for Point<'a> {
     type T = f64;
-    type PointType<'b> = WKBPoint<'a> where Self: 'b;
+    type PointType<'b> = Point<'a> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
         self.dim
@@ -97,9 +97,9 @@ impl<'a> MultiPointTrait for WKBPoint<'a> {
     }
 }
 
-impl<'a> MultiPointTrait for &'a WKBPoint<'a> {
+impl<'a> MultiPointTrait for &'a Point<'a> {
     type T = f64;
-    type PointType<'b> = WKBPoint<'a> where Self: 'b;
+    type PointType<'b> = Point<'a> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
         self.dim

@@ -3,7 +3,7 @@ use std::io::Cursor;
 use byteorder::{BigEndian, LittleEndian, ReadBytesExt};
 
 // use crate::algorithm::native::eq::multi_line_string_eq;
-use crate::reader::linestring::WKBLineString;
+use crate::reader::linestring::LineString;
 use crate::Endianness;
 use geo_traits::Dimensions;
 use geo_traits::MultiLineStringTrait;
@@ -14,14 +14,14 @@ const HEADER_BYTES: u64 = 5;
 ///
 /// This has been preprocessed, so access to any internal coordinate is `O(1)`.
 #[derive(Debug, Clone)]
-pub struct WKBMultiLineString<'a> {
-    /// A WKBLineString object for each of the internal line strings
-    wkb_line_strings: Vec<WKBLineString<'a>>,
+pub struct MultiLineString<'a> {
+    /// A LineString object for each of the internal line strings
+    wkb_line_strings: Vec<LineString<'a>>,
     // #[allow(dead_code)]
     dim: Dimensions,
 }
 
-impl<'a> WKBMultiLineString<'a> {
+impl<'a> MultiLineString<'a> {
     pub(crate) fn new(buf: &'a [u8], byte_order: Endianness, dim: Dimensions) -> Self {
         let mut reader = Cursor::new(buf);
         reader.set_position(HEADER_BYTES);
@@ -40,7 +40,7 @@ impl<'a> WKBMultiLineString<'a> {
         let mut line_string_offset = 1 + 4 + 4;
         let mut wkb_line_strings = Vec::with_capacity(num_line_strings);
         for _ in 0..num_line_strings {
-            let ls = WKBLineString::new(buf, byte_order, line_string_offset, dim);
+            let ls = LineString::new(buf, byte_order, line_string_offset, dim);
             wkb_line_strings.push(ls);
             line_string_offset += ls.size();
         }
@@ -58,7 +58,7 @@ impl<'a> WKBMultiLineString<'a> {
         // - 1: byteOrder
         // - 4: wkbType
         // - 4: numPoints
-        // - WKBPoint::size() * self.num_points: the size of each WKBPoint for each point
+        // - Point::size() * self.num_points: the size of each Point for each point
         self.wkb_line_strings
             .iter()
             .fold(1 + 4 + 4, |acc, ls| acc + ls.size())
@@ -69,9 +69,9 @@ impl<'a> WKBMultiLineString<'a> {
     }
 }
 
-impl<'a> MultiLineStringTrait for WKBMultiLineString<'a> {
+impl<'a> MultiLineStringTrait for MultiLineString<'a> {
     type T = f64;
-    type LineStringType<'b> = WKBLineString<'a> where Self: 'b;
+    type LineStringType<'b> = LineString<'a> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
         self.dim
@@ -86,9 +86,9 @@ impl<'a> MultiLineStringTrait for WKBMultiLineString<'a> {
     }
 }
 
-impl<'a> MultiLineStringTrait for &'a WKBMultiLineString<'a> {
+impl<'a> MultiLineStringTrait for &'a MultiLineString<'a> {
     type T = f64;
-    type LineStringType<'b> = WKBLineString<'a> where Self: 'b;
+    type LineStringType<'b> = LineString<'a> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
         self.dim

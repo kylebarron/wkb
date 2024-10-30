@@ -2,7 +2,7 @@ use std::io::Cursor;
 
 use byteorder::{BigEndian, LittleEndian, ReadBytesExt};
 
-use crate::reader::point::WKBPoint;
+use crate::reader::point::Point;
 use crate::Endianness;
 use geo_traits::Dimensions;
 use geo_traits::MultiPointTrait;
@@ -11,7 +11,7 @@ use geo_traits::MultiPointTrait;
 ///
 /// This has been preprocessed, so access to any internal coordinate is `O(1)`.
 #[derive(Debug, Clone, Copy)]
-pub struct WKBMultiPoint<'a> {
+pub struct MultiPoint<'a> {
     buf: &'a [u8],
     byte_order: Endianness,
 
@@ -20,7 +20,7 @@ pub struct WKBMultiPoint<'a> {
     dim: Dimensions,
 }
 
-impl<'a> WKBMultiPoint<'a> {
+impl<'a> MultiPoint<'a> {
     pub(crate) fn new(buf: &'a [u8], byte_order: Endianness, dim: Dimensions) -> Self {
         // TODO: assert WKB type?
         let mut reader = Cursor::new(buf);
@@ -50,11 +50,11 @@ impl<'a> WKBMultiPoint<'a> {
         // - 1: byteOrder
         // - 4: wkbType
         // - 4: numPoints
-        // - WKBPoint::size() * self.num_points: the size of each WKBPoint for each point
+        // - Point::size() * self.num_points: the size of each Point for each point
         1 + 4 + 4 + ((1 + 4 + (self.dim.size() as u64 * 8)) * self.num_points as u64)
     }
 
-    /// The offset into this buffer of any given WKBPoint
+    /// The offset into this buffer of any given Point
     pub fn point_offset(&self, i: u64) -> u64 {
         1 + 4 + 4 + ((1 + 4 + (self.dim.size() as u64 * 8)) * i)
     }
@@ -64,9 +64,9 @@ impl<'a> WKBMultiPoint<'a> {
     }
 }
 
-impl<'a> MultiPointTrait for WKBMultiPoint<'a> {
+impl<'a> MultiPointTrait for MultiPoint<'a> {
     type T = f64;
-    type PointType<'b> = WKBPoint<'a> where Self: 'b;
+    type PointType<'b> = Point<'a> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
         self.dim
@@ -77,7 +77,7 @@ impl<'a> MultiPointTrait for WKBMultiPoint<'a> {
     }
 
     unsafe fn point_unchecked(&self, i: usize) -> Self::PointType<'_> {
-        WKBPoint::new(
+        Point::new(
             self.buf,
             self.byte_order,
             self.point_offset(i.try_into().unwrap()),
@@ -86,9 +86,9 @@ impl<'a> MultiPointTrait for WKBMultiPoint<'a> {
     }
 }
 
-impl<'a> MultiPointTrait for &'a WKBMultiPoint<'a> {
+impl<'a> MultiPointTrait for &'a MultiPoint<'a> {
     type T = f64;
-    type PointType<'b> = WKBPoint<'a> where Self: 'b;
+    type PointType<'b> = Point<'a> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
         self.dim
@@ -99,7 +99,7 @@ impl<'a> MultiPointTrait for &'a WKBMultiPoint<'a> {
     }
 
     unsafe fn point_unchecked(&self, i: usize) -> Self::PointType<'_> {
-        WKBPoint::new(
+        Point::new(
             self.buf,
             self.byte_order,
             self.point_offset(i.try_into().unwrap()),
