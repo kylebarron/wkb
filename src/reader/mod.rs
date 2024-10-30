@@ -17,11 +17,19 @@ mod multipolygon;
 mod point;
 mod polygon;
 
-pub use geometry::WKB;
-pub use geometry_collection::GeometryCollection;
-pub use linestring::LineString;
-pub use multilinestring::MultiLineString;
-pub use multipoint::MultiPoint;
-pub use multipolygon::MultiPolygon;
-pub use point::Point;
-pub use polygon::Polygon;
+use geometry::Wkb;
+use geometry_collection::GeometryCollection;
+use linestring::LineString;
+use multilinestring::MultiLineString;
+use multipoint::MultiPoint;
+use multipolygon::MultiPolygon;
+use point::Point;
+use polygon::Polygon;
+
+use geo_traits::GeometryTrait;
+
+use crate::error::WKBResult;
+
+pub fn read_wkb(buf: &[u8]) -> WKBResult<impl GeometryTrait + use<'_>> {
+    Wkb::try_new(buf)
+}

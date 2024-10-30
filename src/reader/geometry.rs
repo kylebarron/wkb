@@ -12,7 +12,7 @@ use geo_traits::{
 };
 
 #[derive(Debug, Clone)]
-pub enum WKB<'a> {
+pub enum Wkb<'a> {
     Point(Point<'a>),
     LineString(LineString<'a>),
     Polygon(Polygon<'a>),
@@ -22,7 +22,7 @@ pub enum WKB<'a> {
     GeometryCollection(GeometryCollection<'a>),
 }
 
-impl<'a> WKB<'a> {
+impl<'a> Wkb<'a> {
     pub fn try_new(buf: &'a [u8]) -> WKBResult<Self> {
         let mut reader = Cursor::new(buf);
         let byte_order = reader.read_u8().unwrap();
@@ -31,82 +31,40 @@ impl<'a> WKB<'a> {
         use Dimensions::*;
 
         let out = match wkb_type {
-            WKBType::Point => WKB::Point(Point::new(buf, byte_order.into(), 0, Xy)),
-            WKBType::LineString => WKB::LineString(LineString::new(buf, byte_order.into(), 0, Xy)),
-            WKBType::Polygon => WKB::Polygon(Polygon::new(buf, byte_order.into(), 0, Xy)),
-            WKBType::MultiPoint => WKB::MultiPoint(MultiPoint::new(buf, byte_order.into(), Xy)),
+            WKBType::Point => Wkb::Point(Point::new(buf, byte_order.into(), 0, Xy)),
+            WKBType::LineString => Wkb::LineString(LineString::new(buf, byte_order.into(), 0, Xy)),
+            WKBType::Polygon => Wkb::Polygon(Polygon::new(buf, byte_order.into(), 0, Xy)),
+            WKBType::MultiPoint => Wkb::MultiPoint(MultiPoint::new(buf, byte_order.into(), Xy)),
             WKBType::MultiLineString => {
-                WKB::MultiLineString(MultiLineString::new(buf, byte_order.into(), Xy))
+                Wkb::MultiLineString(MultiLineString::new(buf, byte_order.into(), Xy))
             }
             WKBType::MultiPolygon => {
-                WKB::MultiPolygon(MultiPolygon::new(buf, byte_order.into(), Xy))
+                Wkb::MultiPolygon(MultiPolygon::new(buf, byte_order.into(), Xy))
             }
             WKBType::GeometryCollection => {
-                WKB::GeometryCollection(GeometryCollection::try_new(buf, byte_order.into(), Xy)?)
+                Wkb::GeometryCollection(GeometryCollection::try_new(buf, byte_order.into(), Xy)?)
             }
-            WKBType::PointZ => WKB::Point(Point::new(buf, byte_order.into(), 0, Xyz)),
+            WKBType::PointZ => Wkb::Point(Point::new(buf, byte_order.into(), 0, Xyz)),
             WKBType::LineStringZ => {
-                WKB::LineString(LineString::new(buf, byte_order.into(), 0, Xyz))
+                Wkb::LineString(LineString::new(buf, byte_order.into(), 0, Xyz))
             }
-            WKBType::PolygonZ => WKB::Polygon(Polygon::new(buf, byte_order.into(), 0, Xyz)),
-            WKBType::MultiPointZ => WKB::MultiPoint(MultiPoint::new(buf, byte_order.into(), Xyz)),
+            WKBType::PolygonZ => Wkb::Polygon(Polygon::new(buf, byte_order.into(), 0, Xyz)),
+            WKBType::MultiPointZ => Wkb::MultiPoint(MultiPoint::new(buf, byte_order.into(), Xyz)),
             WKBType::MultiLineStringZ => {
-                WKB::MultiLineString(MultiLineString::new(buf, byte_order.into(), Xyz))
+                Wkb::MultiLineString(MultiLineString::new(buf, byte_order.into(), Xyz))
             }
             WKBType::MultiPolygonZ => {
-                WKB::MultiPolygon(MultiPolygon::new(buf, byte_order.into(), Xyz))
+                Wkb::MultiPolygon(MultiPolygon::new(buf, byte_order.into(), Xyz))
             }
             WKBType::GeometryCollectionZ => {
-                WKB::GeometryCollection(GeometryCollection::try_new(buf, byte_order.into(), Xyz)?)
+                Wkb::GeometryCollection(GeometryCollection::try_new(buf, byte_order.into(), Xyz)?)
             }
         };
         Ok(out)
     }
 
-    pub fn into_point(self) -> Point<'a> {
-        match self {
-            WKB::Point(geom) => geom,
-            _ => panic!(),
-        }
-    }
-
-    pub fn into_line_string(self) -> LineString<'a> {
-        match self {
-            WKB::LineString(geom) => geom,
-            _ => panic!(),
-        }
-    }
-
-    pub fn into_polygon(self) -> Polygon<'a> {
-        match self {
-            WKB::Polygon(geom) => geom,
-            _ => panic!(),
-        }
-    }
-
-    pub fn into_multi_point(self) -> MultiPoint<'a> {
-        match self {
-            WKB::MultiPoint(geom) => geom,
-            _ => panic!(),
-        }
-    }
-
-    pub fn into_multi_line_string(self) -> MultiLineString<'a> {
-        match self {
-            WKB::MultiLineString(geom) => geom,
-            _ => panic!(),
-        }
-    }
-
-    pub fn into_multi_polygon(self) -> MultiPolygon<'a> {
-        match self {
-            WKB::MultiPolygon(geom) => geom,
-            _ => panic!(),
-        }
-    }
-
     pub fn dimension(&self) -> Dimensions {
-        use WKB::*;
+        use Wkb::*;
         match self {
             Point(g) => g.dimension(),
             LineString(g) => g.dimension(),
@@ -119,7 +77,7 @@ impl<'a> WKB<'a> {
     }
 
     pub fn size(&self) -> u64 {
-        use WKB::*;
+        use Wkb::*;
         match self {
             Point(g) => g.size(),
             LineString(g) => g.size(),
@@ -132,7 +90,7 @@ impl<'a> WKB<'a> {
     }
 }
 
-impl<'a> GeometryTrait for WKB<'a> {
+impl<'a> GeometryTrait for Wkb<'a> {
     type T = f64;
     type PointType<'b> = Point<'a> where Self: 'b;
     type LineStringType<'b> = LineString<'a> where Self: 'b;
@@ -165,7 +123,7 @@ impl<'a> GeometryTrait for WKB<'a> {
         UnimplementedLine<f64>,
     > {
         use geo_traits::GeometryType as B;
-        use WKB as A;
+        use Wkb as A;
         match self {
             A::Point(p) => B::Point(p),
             A::LineString(ls) => B::LineString(ls),
@@ -178,7 +136,7 @@ impl<'a> GeometryTrait for WKB<'a> {
     }
 }
 
-impl<'a> GeometryTrait for &'a WKB<'a> {
+impl<'a> GeometryTrait for &'a Wkb<'a> {
     type T = f64;
     type PointType<'b> = Point<'a> where Self: 'b;
     type LineStringType<'b> = LineString<'a> where Self: 'b;
@@ -211,7 +169,7 @@ impl<'a> GeometryTrait for &'a WKB<'a> {
         UnimplementedLine<f64>,
     > {
         use geo_traits::GeometryType as B;
-        use WKB as A;
+        use Wkb as A;
         match self {
             A::Point(p) => B::Point(p),
             A::LineString(ls) => B::LineString(ls),
