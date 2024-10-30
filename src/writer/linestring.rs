@@ -14,7 +14,7 @@ pub fn line_string_wkb_size(geom: &impl LineStringTrait) -> usize {
 }
 
 /// Write a LineString geometry to a Writer encoded as WKB
-pub fn write_line_string_as_wkb<W: Write>(
+pub fn write_line_string<W: Write>(
     mut writer: W,
     geom: &impl LineStringTrait<T = f64>,
 ) -> WKBResult<()> {

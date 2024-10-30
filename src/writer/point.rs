@@ -14,10 +14,7 @@ pub fn point_wkb_size(dim: geo_traits::Dimensions) -> usize {
 }
 
 /// Write a Point geometry to a Writer encoded as WKB
-pub fn write_point_as_wkb<W: Write>(
-    mut writer: W,
-    geom: &impl PointTrait<T = f64>,
-) -> WKBResult<()> {
+pub fn write_point<W: Write>(mut writer: W, geom: &impl PointTrait<T = f64>) -> WKBResult<()> {
     use geo_traits::Dimensions;
 
     // Byte order

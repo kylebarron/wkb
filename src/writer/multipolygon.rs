@@ -1,6 +1,6 @@
 use crate::common::WKBType;
 use crate::error::WKBResult;
-use crate::writer::polygon::{polygon_wkb_size, write_polygon_as_wkb};
+use crate::writer::polygon::{polygon_wkb_size, write_polygon};
 use crate::Endianness;
 use byteorder::{LittleEndian, WriteBytesExt};
 use geo_traits::MultiPolygonTrait;
@@ -17,7 +17,7 @@ pub fn multi_polygon_wkb_size(geom: &impl MultiPolygonTrait) -> usize {
 }
 
 /// Write a MultiPolygon geometry to a Writer encoded as WKB
-pub fn write_multi_polygon_as_wkb<W: Write>(
+pub fn write_multi_polygon<W: Write>(
     mut writer: W,
     geom: &impl MultiPolygonTrait<T = f64>,
 ) -> WKBResult<()> {
@@ -40,7 +40,7 @@ pub fn write_multi_polygon_as_wkb<W: Write>(
     writer.write_u32::<LittleEndian>(geom.num_polygons().try_into().unwrap())?;
 
     for polygon in geom.polygons() {
-        write_polygon_as_wkb(&mut writer, &polygon)?;
+        write_polygon(&mut writer, &polygon)?;
     }
 
     Ok(())

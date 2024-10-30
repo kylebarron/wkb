@@ -23,10 +23,7 @@ pub fn polygon_wkb_size(geom: &impl PolygonTrait) -> usize {
 }
 
 /// Write a Polygon geometry to a Writer encoded as WKB
-pub fn write_polygon_as_wkb<W: Write>(
-    mut writer: W,
-    geom: &impl PolygonTrait<T = f64>,
-) -> WKBResult<()> {
+pub fn write_polygon<W: Write>(mut writer: W, geom: &impl PolygonTrait<T = f64>) -> WKBResult<()> {
     use geo_traits::Dimensions;
 
     // Byte order
