@@ -2,7 +2,7 @@ use std::io::Cursor;
 
 use byteorder::{BigEndian, LittleEndian, ReadBytesExt};
 
-use crate::reader::polygon::WKBPolygon;
+use crate::reader::polygon::Polygon;
 use crate::Endianness;
 use geo_traits::Dimensions;
 use geo_traits::MultiPolygonTrait;
@@ -12,14 +12,14 @@ const HEADER_BYTES: u64 = 5;
 
 /// A WKB MultiPolygon
 #[derive(Debug, Clone)]
-pub struct WKBMultiPolygon<'a> {
-    /// A WKBPolygon object for each of the internal line strings
-    wkb_polygons: Vec<WKBPolygon<'a>>,
+pub struct MultiPolygon<'a> {
+    /// A Polygon object for each of the internal line strings
+    wkb_polygons: Vec<Polygon<'a>>,
 
     dim: Dimensions,
 }
 
-impl<'a> WKBMultiPolygon<'a> {
+impl<'a> MultiPolygon<'a> {
     pub(crate) fn new(buf: &'a [u8], byte_order: Endianness, dim: Dimensions) -> Self {
         let mut reader = Cursor::new(buf);
         reader.set_position(HEADER_BYTES);
@@ -38,7 +38,7 @@ impl<'a> WKBMultiPolygon<'a> {
         let mut polygon_offset = 1 + 4 + 4;
         let mut wkb_polygons = Vec::with_capacity(num_polygons);
         for _ in 0..num_polygons {
-            let polygon = WKBPolygon::new(buf, byte_order, polygon_offset, dim);
+            let polygon = Polygon::new(buf, byte_order, polygon_offset, dim);
             polygon_offset += polygon.size();
             wkb_polygons.push(polygon);
         }
@@ -63,9 +63,9 @@ impl<'a> WKBMultiPolygon<'a> {
     }
 }
 
-impl<'a> MultiPolygonTrait for WKBMultiPolygon<'a> {
+impl<'a> MultiPolygonTrait for MultiPolygon<'a> {
     type T = f64;
-    type PolygonType<'b> = WKBPolygon<'a> where Self: 'b;
+    type PolygonType<'b> = Polygon<'a> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
         self.dim
@@ -80,9 +80,9 @@ impl<'a> MultiPolygonTrait for WKBMultiPolygon<'a> {
     }
 }
 
-impl<'a> MultiPolygonTrait for &'a WKBMultiPolygon<'a> {
+impl<'a> MultiPolygonTrait for &'a MultiPolygon<'a> {
     type T = f64;
-    type PolygonType<'b> = WKBPolygon<'a> where Self: 'b;
+    type PolygonType<'b> = Polygon<'a> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
         self.dim

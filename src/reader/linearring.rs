@@ -2,7 +2,7 @@ use std::io::Cursor;
 
 use byteorder::{BigEndian, LittleEndian, ReadBytesExt};
 
-use crate::reader::coord::WKBCoord;
+use crate::reader::coord::Coord;
 use crate::Endianness;
 use geo_traits::Dimensions;
 use geo_traits::LineStringTrait;
@@ -22,9 +22,9 @@ pub struct WKBLinearRing<'a> {
 
     /// The offset into the buffer where this linear ring is located
     ///
-    /// Note that this does not have to be immediately after the WKB header! For a `WKBPoint`, the
+    /// Note that this does not have to be immediately after the WKB header! For a `Point`, the
     /// `Point` is immediately after the header, but the `Point` also appears in other geometry
-    /// types. I.e. the `WKBLineString` has a header, then the number of points, then a sequence of
+    /// types. I.e. the `LineString` has a header, then the number of points, then a sequence of
     /// `Point` objects.
     offset: u64,
 
@@ -73,7 +73,7 @@ impl<'a> WKBLinearRing<'a> {
 
 impl<'a> LineStringTrait for WKBLinearRing<'a> {
     type T = f64;
-    type CoordType<'b> = WKBCoord<'a> where Self: 'b;
+    type CoordType<'b> = Coord<'a> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
         self.dim
@@ -84,7 +84,7 @@ impl<'a> LineStringTrait for WKBLinearRing<'a> {
     }
 
     unsafe fn coord_unchecked(&self, i: usize) -> Self::CoordType<'_> {
-        WKBCoord::new(
+        Coord::new(
             self.buf,
             self.byte_order,
             self.coord_offset(i.try_into().unwrap()),

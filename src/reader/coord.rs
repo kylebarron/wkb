@@ -9,14 +9,14 @@ const F64_WIDTH: u64 = 8;
 
 /// A coordinate in a WKB buffer.
 ///
-/// Note that according to the WKB specification this is called `Point`, which is **not** the same
-/// as a `WKBPoint`. In particular, a `WKBPoint` has framing that includes the byte order and
-/// geometry type of the WKB buffer. In contrast, this `Point` is the building block of two f64
-/// numbers that can occur within any geometry type.
+/// Note that according to the WKB specification this is called `"Point"`, which is **not** the
+/// same as a WKB "framed" `Point`. In particular, a "framed" `Point` has framing that includes the
+/// byte order and geometry type of the WKB buffer. In contrast, this `Coord` is the building block
+/// of two to four f64 numbers that can occur within any geometry type.
 ///
 /// See page 65 of <https://portal.ogc.org/files/?artifact_id=25355>.
 #[derive(Debug, Clone, Copy)]
-pub struct WKBCoord<'a> {
+pub struct Coord<'a> {
     /// The underlying WKB buffer
     buf: &'a [u8],
 
@@ -25,16 +25,16 @@ pub struct WKBCoord<'a> {
 
     /// The offset into the buffer where this coordinate is located
     ///
-    /// Note that this does not have to be immediately after the WKB header! For a `WKBPoint`, the
+    /// Note that this does not have to be immediately after the WKB header! For a `Point`, the
     /// `Point` is immediately after the header, but the `Point` also appears in other geometry
-    /// types. I.e. the `WKBLineString` has a header, then the number of points, then a sequence of
+    /// types. I.e. the `LineString` has a header, then the number of points, then a sequence of
     /// `Point` objects.
     offset: u64,
 
     dim: Dimensions,
 }
 
-impl<'a> WKBCoord<'a> {
+impl<'a> Coord<'a> {
     pub(crate) fn new(buf: &'a [u8], byte_order: Endianness, offset: u64, dim: Dimensions) -> Self {
         Self {
             buf,
@@ -77,12 +77,12 @@ impl<'a> WKBCoord<'a> {
     /// Note that this is not the same as the length of the underlying buffer
     #[allow(dead_code)]
     pub fn size(&self) -> u64 {
-        // A 2D WKBCoord is just two f64s
+        // A 2D Coord is just two f64s
         self.dim.size() as u64 * 8
     }
 }
 
-impl<'a> CoordTrait for WKBCoord<'a> {
+impl<'a> CoordTrait for Coord<'a> {
     type T = f64;
 
     fn dim(&self) -> Dimensions {

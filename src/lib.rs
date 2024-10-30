@@ -6,4 +6,4 @@ pub mod reader;
 pub mod writer;
 
 pub use common::{Endianness, WKBType};
-pub use reader::WKBGeometry as WKB;
+pub use reader::WKB;
