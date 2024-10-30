@@ -1,6 +1,6 @@
 use crate::common::WKBType;
 use crate::error::WKBResult;
-use crate::writer::geometry::{geometry_wkb_size, write_geometry_as_wkb};
+use crate::writer::geometry::{geometry_wkb_size, write_geometry};
 use crate::Endianness;
 use byteorder::{LittleEndian, WriteBytesExt};
 use geo_traits::GeometryCollectionTrait;
@@ -18,7 +18,7 @@ pub fn geometry_collection_wkb_size(geom: &impl GeometryCollectionTrait) -> usiz
 }
 
 /// Write a GeometryCollection geometry to a Writer encoded as WKB
-pub fn write_geometry_collection_as_wkb<W: Write>(
+pub fn write_geometry_collection<W: Write>(
     mut writer: W,
     geom: &impl GeometryCollectionTrait<T = f64>,
 ) -> WKBResult<()> {
@@ -41,7 +41,7 @@ pub fn write_geometry_collection_as_wkb<W: Write>(
     writer.write_u32::<LittleEndian>(geom.num_geometries().try_into().unwrap())?;
 
     for inner_geom in geom.geometries() {
-        write_geometry_as_wkb(&mut writer, &inner_geom)?;
+        write_geometry(&mut writer, &inner_geom)?;
     }
 
     Ok(())

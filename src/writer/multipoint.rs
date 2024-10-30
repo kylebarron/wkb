@@ -1,6 +1,6 @@
 use crate::common::WKBType;
 use crate::error::WKBResult;
-use crate::writer::point::{point_wkb_size, write_point_as_wkb};
+use crate::writer::point::{point_wkb_size, write_point};
 use crate::Endianness;
 use byteorder::{LittleEndian, WriteBytesExt};
 use geo_traits::MultiPointTrait;
@@ -12,7 +12,7 @@ pub fn multi_point_wkb_size(geom: &impl MultiPointTrait) -> usize {
 }
 
 /// Write a MultiPoint geometry to a Writer encoded as WKB
-pub fn write_multi_point_as_wkb<W: Write>(
+pub fn write_multi_point<W: Write>(
     mut writer: W,
     geom: &impl MultiPointTrait<T = f64>,
 ) -> WKBResult<()> {
@@ -35,7 +35,7 @@ pub fn write_multi_point_as_wkb<W: Write>(
     writer.write_u32::<LittleEndian>(geom.num_points().try_into().unwrap())?;
 
     for point in geom.points() {
-        write_point_as_wkb(&mut writer, &point)?;
+        write_point(&mut writer, &point)?;
     }
 
     Ok(())
