@@ -15,11 +15,12 @@ pub fn multi_point_wkb_size(geom: &impl MultiPointTrait) -> usize {
 pub fn write_multi_point<W: Write>(
     mut writer: W,
     geom: &impl MultiPointTrait<T = f64>,
+    endianness: Endianness,
 ) -> WKBResult<()> {
     use geo_traits::Dimensions;
 
     // Byte order
-    writer.write_u8(Endianness::LittleEndian.into())?;
+    writer.write_u8(endianness.into())?;
 
     match geom.dim() {
         Dimensions::Xy | Dimensions::Unknown(2) => {
@@ -35,7 +36,7 @@ pub fn write_multi_point<W: Write>(
     writer.write_u32::<LittleEndian>(geom.num_points().try_into().unwrap())?;
 
     for point in geom.points() {
-        write_point(&mut writer, &point)?;
+        write_point(&mut writer, &point, endianness)?;
     }
 
     Ok(())

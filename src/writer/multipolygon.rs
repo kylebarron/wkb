@@ -20,11 +20,12 @@ pub fn multi_polygon_wkb_size(geom: &impl MultiPolygonTrait) -> usize {
 pub fn write_multi_polygon<W: Write>(
     mut writer: W,
     geom: &impl MultiPolygonTrait<T = f64>,
+    endianness: Endianness,
 ) -> WKBResult<()> {
     use geo_traits::Dimensions;
 
     // Byte order
-    writer.write_u8(Endianness::LittleEndian.into())?;
+    writer.write_u8(endianness.into())?;
 
     match geom.dim() {
         Dimensions::Xy | Dimensions::Unknown(2) => {
@@ -40,7 +41,7 @@ pub fn write_multi_polygon<W: Write>(
     writer.write_u32::<LittleEndian>(geom.num_polygons().try_into().unwrap())?;
 
     for polygon in geom.polygons() {
-        write_polygon(&mut writer, &polygon)?;
+        write_polygon(&mut writer, &polygon, endianness)?;
     }
 
     Ok(())

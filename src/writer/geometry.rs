@@ -5,6 +5,7 @@ use crate::writer::{
     write_geometry_collection, write_line_string, write_multi_line_string, write_multi_point,
     write_multi_polygon, write_point, write_polygon,
 };
+use crate::Endianness;
 use geo_traits::{GeometryTrait, GeometryType};
 use std::io::Write;
 
@@ -26,21 +27,20 @@ pub fn geometry_wkb_size(geom: &impl GeometryTrait) -> usize {
 }
 
 /// Write a Geometry to a Writer encoded as WKB
-pub fn write_geometry<W: Write>(writer: W, geom: &impl GeometryTrait<T = f64>) -> WKBResult<()> {
+pub fn write_geometry<W: Write>(
+    writer: W,
+    geom: &impl GeometryTrait<T = f64>,
+    endianness: Endianness,
+) -> WKBResult<()> {
     use GeometryType::*;
     match geom.as_type() {
-        Point(p) => write_point(writer, p),
-        LineString(ls) => write_line_string(writer, ls),
-        Polygon(p) => write_polygon(writer, p),
-        MultiPoint(mp) => write_multi_point(writer, mp),
-        MultiLineString(ml) => write_multi_line_string(writer, ml),
-        MultiPolygon(mp) => write_multi_polygon(writer, mp),
-        GeometryCollection(gc) => {
-            // todo!()
-            // error[E0275]: overflow evaluating the requirement `&mut std::io::Cursor<std::vec::Vec<u8>>: std::io::Write`
-            // https://stackoverflow.com/a/31197781/7319250
-            write_geometry_collection(writer, gc)
-        }
+        Point(p) => write_point(writer, p, endianness),
+        LineString(ls) => write_line_string(writer, ls, endianness),
+        Polygon(p) => write_polygon(writer, p, endianness),
+        MultiPoint(mp) => write_multi_point(writer, mp, endianness),
+        MultiLineString(ml) => write_multi_line_string(writer, ml, endianness),
+        MultiPolygon(mp) => write_multi_polygon(writer, mp, endianness),
+        GeometryCollection(gc) => write_geometry_collection(writer, gc, endianness),
         Rect(_) => todo!(),
         Triangle(_) => todo!(),
         Line(_) => todo!(),
