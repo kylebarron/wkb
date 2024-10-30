@@ -1,0 +1,26 @@
+[package]
+name = "wkb"
+version = "0.1.0"
+authors = ["Kyle Barron <kylebarron2@gmail.com>"]
+edition = "2021"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/georust/wkb"
+description = "Standalone WKB reader and writer"
+categories = ["science::geo"]
+# Note: this can be relaxed; I haven't kept track of what I've used.
+rust-version = "1.80"
+
+[dependencies]
+byteorder = "1"
+enum-as-inner = "0.6.1"
+geo-traits = "0.1.1"
+num_enum = "0.7"
+thiserror = "1"
+
+[dev-dependencies]
+approx = "0.5.1"
+bytes = "1.5.0"
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[lib]
+doctest = true
