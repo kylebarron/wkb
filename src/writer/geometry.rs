@@ -40,7 +40,10 @@ pub fn write_geometry<W: Write>(
         MultiPoint(mp) => write_multi_point(writer, mp, endianness),
         MultiLineString(ml) => write_multi_line_string(writer, ml, endianness),
         MultiPolygon(mp) => write_multi_polygon(writer, mp, endianness),
-        GeometryCollection(gc) => write_geometry_collection(writer, gc, endianness),
+        GeometryCollection(gc) => {
+            todo!()
+            // write_geometry_collection(writer, gc, endianness),
+        }
         Rect(_) => todo!(),
         Triangle(_) => todo!(),
         Line(_) => todo!(),
