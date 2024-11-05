@@ -72,6 +72,6 @@ impl<'a> GeometryCollectionTrait for GeometryCollection<'a> {
     }
 
     unsafe fn geometry_unchecked(&self, i: usize) -> Self::GeometryType<'_> {
-        &self.geometries[i]
+        self.geometries.get_unchecked(i)
     }
 }
