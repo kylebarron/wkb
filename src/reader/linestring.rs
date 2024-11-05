@@ -5,7 +5,7 @@ use byteorder::{BigEndian, LittleEndian, ReadBytesExt};
 use crate::reader::coord::Coord;
 use crate::Endianness;
 use geo_traits::Dimensions;
-use geo_traits::{LineStringTrait, MultiLineStringTrait};
+use geo_traits::LineStringTrait;
 
 const HEADER_BYTES: u64 = 5;
 
@@ -110,39 +110,5 @@ impl<'a> LineStringTrait for &'a LineString<'a> {
             self.coord_offset(i.try_into().unwrap()),
             self.dim,
         )
-    }
-}
-
-impl<'a> MultiLineStringTrait for LineString<'a> {
-    type T = f64;
-    type LineStringType<'b> = LineString<'a> where Self: 'b;
-
-    fn dim(&self) -> Dimensions {
-        self.dim
-    }
-
-    fn num_line_strings(&self) -> usize {
-        1
-    }
-
-    unsafe fn line_string_unchecked(&self, _i: usize) -> Self::LineStringType<'_> {
-        *self
-    }
-}
-
-impl<'a> MultiLineStringTrait for &'a LineString<'a> {
-    type T = f64;
-    type LineStringType<'b> = LineString<'a> where Self: 'b;
-
-    fn dim(&self) -> Dimensions {
-        self.dim
-    }
-
-    fn num_line_strings(&self) -> usize {
-        1
-    }
-
-    unsafe fn line_string_unchecked(&self, _i: usize) -> Self::LineStringType<'_> {
-        **self
     }
 }

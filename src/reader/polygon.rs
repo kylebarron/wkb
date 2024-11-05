@@ -6,7 +6,7 @@ use byteorder::{BigEndian, LittleEndian, ReadBytesExt};
 use crate::reader::linearring::WKBLinearRing;
 use crate::Endianness;
 use geo_traits::Dimensions;
-use geo_traits::{MultiPolygonTrait, PolygonTrait};
+use geo_traits::PolygonTrait;
 
 const WKB_POLYGON_TYPE: u32 = 3;
 
@@ -139,41 +139,5 @@ impl<'a> PolygonTrait for &'a Polygon<'a> {
 
     unsafe fn interior_unchecked(&self, i: usize) -> Self::RingType<'_> {
         *self.wkb_linear_rings.get_unchecked(i + 1)
-    }
-}
-
-impl<'a> MultiPolygonTrait for Polygon<'a> {
-    type T = f64;
-    type PolygonType<'b> = Polygon<'a> where Self: 'b;
-
-    fn dim(&self) -> Dimensions {
-        self.dim
-    }
-
-    fn num_polygons(&self) -> usize {
-        1
-    }
-
-    unsafe fn polygon_unchecked(&self, _i: usize) -> Self::PolygonType<'_> {
-        self.clone()
-    }
-}
-
-impl<'a> MultiPolygonTrait for &'a Polygon<'a> {
-    type T = f64;
-    type PolygonType<'b> = Polygon<'a> where Self: 'b;
-
-    fn dim(&self) -> Dimensions {
-        self.dim
-    }
-
-    fn num_polygons(&self) -> usize {
-        1
-    }
-
-    unsafe fn polygon_unchecked(&self, _i: usize) -> Self::PolygonType<'_> {
-        // TODO: this looks bad
-        #[allow(suspicious_double_ref_op)]
-        self.clone().clone()
     }
 }
