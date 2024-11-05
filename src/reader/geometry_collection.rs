@@ -1,9 +1,8 @@
 use std::io::Cursor;
 
-use byteorder::{BigEndian, LittleEndian, ReadBytesExt};
-
 use crate::error::WKBResult;
 use crate::reader::geometry::Wkb;
+use crate::reader::util::ReadBytesExt;
 use crate::Endianness;
 use geo_traits::{Dimensions, GeometryCollectionTrait};
 
@@ -22,14 +21,7 @@ impl<'a> GeometryCollection<'a> {
     pub fn try_new(buf: &'a [u8], byte_order: Endianness, dim: Dimensions) -> WKBResult<Self> {
         let mut reader = Cursor::new(buf);
         reader.set_position(HEADER_BYTES);
-        let num_geometries = match byte_order {
-            Endianness::BigEndian => reader.read_u32::<BigEndian>().unwrap().try_into().unwrap(),
-            Endianness::LittleEndian => reader
-                .read_u32::<LittleEndian>()
-                .unwrap()
-                .try_into()
-                .unwrap(),
-        };
+        let num_geometries = reader.read_u32(byte_order).unwrap().try_into().unwrap();
 
         // - 1: byteOrder
         // - 4: wkbType

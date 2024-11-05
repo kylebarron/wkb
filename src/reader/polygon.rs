@@ -1,9 +1,7 @@
 use std::io::Cursor;
 
-use byteorder::{BigEndian, LittleEndian, ReadBytesExt};
-
-// use crate::algorithm::native::eq::polygon_eq;
 use crate::reader::linearring::WKBLinearRing;
+use crate::reader::util::ReadBytesExt;
 use crate::Endianness;
 use geo_traits::Dimensions;
 use geo_traits::PolygonTrait;
@@ -25,22 +23,9 @@ impl<'a> Polygon<'a> {
         reader.set_position(1 + offset);
 
         // Assert that this is indeed a 2D Polygon
-        assert_eq!(
-            WKB_POLYGON_TYPE,
-            match byte_order {
-                Endianness::BigEndian => reader.read_u32::<BigEndian>().unwrap(),
-                Endianness::LittleEndian => reader.read_u32::<LittleEndian>().unwrap(),
-            }
-        );
+        assert_eq!(WKB_POLYGON_TYPE, reader.read_u32(byte_order).unwrap());
 
-        let num_rings = match byte_order {
-            Endianness::BigEndian => reader.read_u32::<BigEndian>().unwrap().try_into().unwrap(),
-            Endianness::LittleEndian => reader
-                .read_u32::<LittleEndian>()
-                .unwrap()
-                .try_into()
-                .unwrap(),
-        };
+        let num_rings = reader.read_u32(byte_order).unwrap().try_into().unwrap();
 
         // - existing offset into buffer
         // - 1: byteOrder

@@ -1,8 +1,7 @@
 use std::io::Cursor;
 
-use byteorder::{BigEndian, LittleEndian, ReadBytesExt};
-
 use crate::reader::point::Point;
+use crate::reader::util::ReadBytesExt;
 use crate::Endianness;
 use geo_traits::Dimensions;
 use geo_traits::MultiPointTrait;
@@ -26,14 +25,7 @@ impl<'a> MultiPoint<'a> {
         let mut reader = Cursor::new(buf);
         // Set reader to after 1-byte byteOrder and 4-byte wkbType
         reader.set_position(1 + 4);
-        let num_points = match byte_order {
-            Endianness::BigEndian => reader.read_u32::<BigEndian>().unwrap().try_into().unwrap(),
-            Endianness::LittleEndian => reader
-                .read_u32::<LittleEndian>()
-                .unwrap()
-                .try_into()
-                .unwrap(),
-        };
+        let num_points = reader.read_u32(byte_order).unwrap().try_into().unwrap();
 
         Self {
             buf,

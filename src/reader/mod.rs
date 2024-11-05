@@ -16,6 +16,7 @@ mod multipoint;
 mod multipolygon;
 mod point;
 mod polygon;
+mod util;
 
 use geometry::Wkb;
 use geometry_collection::GeometryCollection;
