@@ -1,8 +1,7 @@
 use std::io::Cursor;
 
-use byteorder::{BigEndian, LittleEndian, ReadBytesExt};
-
 use crate::reader::coord::Coord;
+use crate::reader::util::ReadBytesExt;
 use crate::Endianness;
 use geo_traits::Dimensions;
 use geo_traits::LineStringTrait;
@@ -38,14 +37,7 @@ impl<'a> WKBLinearRing<'a> {
     pub fn new(buf: &'a [u8], byte_order: Endianness, offset: u64, dim: Dimensions) -> Self {
         let mut reader = Cursor::new(buf);
         reader.set_position(offset);
-        let num_points = match byte_order {
-            Endianness::BigEndian => reader.read_u32::<BigEndian>().unwrap().try_into().unwrap(),
-            Endianness::LittleEndian => reader
-                .read_u32::<LittleEndian>()
-                .unwrap()
-                .try_into()
-                .unwrap(),
-        };
+        let num_points = reader.read_u32(byte_order).unwrap().try_into().unwrap();
 
         Self {
             buf,
