@@ -13,7 +13,7 @@ pub fn multi_point_wkb_size(geom: &impl MultiPointTrait) -> usize {
 
 /// Write a MultiPoint geometry to a Writer encoded as WKB
 pub fn write_multi_point<W: Write>(
-    mut writer: W,
+    writer: &mut W,
     geom: &impl MultiPointTrait<T = f64>,
     endianness: Endianness,
 ) -> WKBResult<()> {
@@ -36,7 +36,7 @@ pub fn write_multi_point<W: Write>(
     writer.write_u32::<LittleEndian>(geom.num_points().try_into().unwrap())?;
 
     for point in geom.points() {
-        write_point(&mut writer, &point, endianness)?;
+        write_point(writer, &point, endianness)?;
     }
 
     Ok(())
