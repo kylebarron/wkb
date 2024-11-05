@@ -2,8 +2,8 @@ use crate::error::WKBResult;
 use crate::writer::{
     geometry_collection_wkb_size, line_string_wkb_size, multi_line_string_wkb_size,
     multi_point_wkb_size, multi_polygon_wkb_size, point_wkb_size, polygon_wkb_size,
-    write_line_string, write_multi_line_string, write_multi_point, write_multi_polygon,
-    write_point, write_polygon,
+    write_geometry_collection, write_line_string, write_multi_line_string, write_multi_point,
+    write_multi_polygon, write_point, write_polygon,
 };
 use crate::Endianness;
 use geo_traits::{GeometryTrait, GeometryType};
@@ -28,7 +28,7 @@ pub fn geometry_wkb_size(geom: &impl GeometryTrait) -> usize {
 
 /// Write a Geometry to a Writer encoded as WKB
 pub fn write_geometry<W: Write>(
-    writer: W,
+    writer: &mut W,
     geom: &impl GeometryTrait<T = f64>,
     endianness: Endianness,
 ) -> WKBResult<()> {
@@ -40,10 +40,7 @@ pub fn write_geometry<W: Write>(
         MultiPoint(mp) => write_multi_point(writer, mp, endianness),
         MultiLineString(ml) => write_multi_line_string(writer, ml, endianness),
         MultiPolygon(mp) => write_multi_polygon(writer, mp, endianness),
-        GeometryCollection(_gc) => {
-            todo!()
-            // write_geometry_collection(writer, gc, endianness),
-        }
+        GeometryCollection(gc) => write_geometry_collection(writer, gc, endianness),
         Rect(_) => todo!(),
         Triangle(_) => todo!(),
         Line(_) => todo!(),

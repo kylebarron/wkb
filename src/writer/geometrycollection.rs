@@ -19,7 +19,7 @@ pub fn geometry_collection_wkb_size(geom: &impl GeometryCollectionTrait) -> usiz
 
 /// Write a GeometryCollection geometry to a Writer encoded as WKB
 pub fn write_geometry_collection<W: Write>(
-    mut writer: W,
+    writer: &mut W,
     geom: &impl GeometryCollectionTrait<T = f64>,
     endianness: Endianness,
 ) -> WKBResult<()> {
@@ -42,7 +42,7 @@ pub fn write_geometry_collection<W: Write>(
     writer.write_u32::<LittleEndian>(geom.num_geometries().try_into().unwrap())?;
 
     for inner_geom in geom.geometries() {
-        write_geometry(&mut writer, &inner_geom, endianness)?;
+        write_geometry(writer, &inner_geom, endianness)?;
     }
 
     Ok(())
