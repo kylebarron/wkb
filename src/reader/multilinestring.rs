@@ -17,7 +17,6 @@ const HEADER_BYTES: u64 = 5;
 pub struct MultiLineString<'a> {
     /// A LineString object for each of the internal line strings
     wkb_line_strings: Vec<LineString<'a>>,
-    // #[allow(dead_code)]
     dim: Dimensions,
 }
 
