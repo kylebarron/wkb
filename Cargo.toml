@@ -7,8 +7,9 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/georust/wkb"
 description = "Standalone WKB reader and writer"
 categories = ["science::geo"]
-# Note: this can be relaxed; I haven't kept track of what I've used.
-rust-version = "1.80"
+# 1.82 is the minimum version for `impl GeometryTrait + use<'_>` in `read_wkb`
+# https://rust-lang.github.io/rfcs/3617-precise-capturing.html
+rust-version = "1.82"
 
 [dependencies]
 byteorder = "1"
