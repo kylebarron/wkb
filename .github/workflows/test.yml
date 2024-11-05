@@ -27,5 +27,5 @@ jobs:
       - run: cargo test --all-features
       - run: cargo test --no-default-features
       # We run this on CI as a test that recursive writing of geometry/geometry
-      # collections can compile. See https://github.com/kylebarron/wkb/pull/14
+      # collections can compile. See https://github.com/kylebarron/wkb/issues/15
       - run: cargo bench --bench parse
