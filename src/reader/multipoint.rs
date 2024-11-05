@@ -1,8 +1,8 @@
 use std::io::Cursor;
+use std::marker::PhantomData;
 
 use crate::reader::point::Point;
-use crate::reader::util::ReadBytesExt;
-use crate::Endianness;
+use byteorder::{ByteOrder, ReadBytesExt};
 use geo_traits::Dimensions;
 use geo_traits::MultiPointTrait;
 
@@ -10,26 +10,26 @@ use geo_traits::MultiPointTrait;
 ///
 /// This has been preprocessed, so access to any internal coordinate is `O(1)`.
 #[derive(Debug, Clone, Copy)]
-pub struct MultiPoint<'a> {
+pub struct MultiPoint<'a, B: ByteOrder> {
     buf: &'a [u8],
-    byte_order: Endianness,
+    byte_order: PhantomData<B>,
 
     /// The number of points in this multi point
     num_points: usize,
     dim: Dimensions,
 }
 
-impl<'a> MultiPoint<'a> {
-    pub(crate) fn new(buf: &'a [u8], byte_order: Endianness, dim: Dimensions) -> Self {
+impl<'a, B: ByteOrder> MultiPoint<'a, B> {
+    pub(crate) fn new(buf: &'a [u8], dim: Dimensions) -> Self {
         // TODO: assert WKB type?
         let mut reader = Cursor::new(buf);
         // Set reader to after 1-byte byteOrder and 4-byte wkbType
         reader.set_position(1 + 4);
-        let num_points = reader.read_u32(byte_order).unwrap().try_into().unwrap();
+        let num_points = reader.read_u32::<B>().unwrap().try_into().unwrap();
 
         Self {
             buf,
-            byte_order,
+            byte_order: PhantomData,
             num_points,
             dim,
         }
@@ -56,9 +56,9 @@ impl<'a> MultiPoint<'a> {
     }
 }
 
-impl<'a> MultiPointTrait for MultiPoint<'a> {
+impl<'a, B: ByteOrder> MultiPointTrait for MultiPoint<'a, B> {
     type T = f64;
-    type PointType<'b> = Point<'a> where Self: 'b;
+    type PointType<'b> = Point<'a, B> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
         self.dim
@@ -69,18 +69,13 @@ impl<'a> MultiPointTrait for MultiPoint<'a> {
     }
 
     unsafe fn point_unchecked(&self, i: usize) -> Self::PointType<'_> {
-        Point::new(
-            self.buf,
-            self.byte_order,
-            self.point_offset(i.try_into().unwrap()),
-            self.dim,
-        )
+        Point::new(self.buf, self.point_offset(i.try_into().unwrap()), self.dim)
     }
 }
 
-impl<'a> MultiPointTrait for &'a MultiPoint<'a> {
+impl<'a, B: ByteOrder> MultiPointTrait for &'a MultiPoint<'a, B> {
     type T = f64;
-    type PointType<'b> = Point<'a> where Self: 'b;
+    type PointType<'b> = Point<'a, B> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
         self.dim
@@ -91,11 +86,6 @@ impl<'a> MultiPointTrait for &'a MultiPoint<'a> {
     }
 
     unsafe fn point_unchecked(&self, i: usize) -> Self::PointType<'_> {
-        Point::new(
-            self.buf,
-            self.byte_order,
-            self.point_offset(i.try_into().unwrap()),
-            self.dim,
-        )
+        Point::new(self.buf, self.point_offset(i.try_into().unwrap()), self.dim)
     }
 }

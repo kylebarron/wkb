@@ -18,6 +18,9 @@ mod point;
 mod polygon;
 mod util;
 
+use std::io::Cursor;
+
+use byteorder::{BigEndian, LittleEndian, ReadBytesExt};
 use geometry::Wkb;
 use geometry_collection::GeometryCollection;
 use linestring::LineString;
@@ -30,7 +33,13 @@ use polygon::Polygon;
 use geo_traits::GeometryTrait;
 
 use crate::error::WKBResult;
+use crate::Endianness;
 
 pub fn read_wkb(buf: &[u8]) -> WKBResult<impl GeometryTrait + use<'_>> {
-    Wkb::try_new(buf)
+    let mut reader = Cursor::new(buf);
+    let byte_order = Endianness::try_from(reader.read_u8()?).unwrap();
+    match byte_order {
+        Endianness::LittleEndian => Wkb::<LittleEndian>::try_new(buf),
+        Endianness::BigEndian => Wkb::<BigEndian>::try_new(buf),
+    }
 }

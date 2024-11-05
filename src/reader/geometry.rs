@@ -1,58 +1,49 @@
-use std::io::Cursor;
-
-use byteorder::ReadBytesExt;
+use byteorder::ByteOrder;
 
 use crate::common::WKBType;
 use crate::error::WKBResult;
 use crate::reader::{
     GeometryCollection, LineString, MultiLineString, MultiPoint, MultiPolygon, Point, Polygon,
 };
-use crate::Endianness;
 use geo_traits::{
     Dimensions, GeometryTrait, UnimplementedLine, UnimplementedRect, UnimplementedTriangle,
 };
 
 #[derive(Debug, Clone)]
-pub enum Wkb<'a> {
-    Point(Point<'a>),
-    LineString(LineString<'a>),
-    Polygon(Polygon<'a>),
-    MultiPoint(MultiPoint<'a>),
-    MultiLineString(MultiLineString<'a>),
-    MultiPolygon(MultiPolygon<'a>),
-    GeometryCollection(GeometryCollection<'a>),
+pub enum Wkb<'a, B: ByteOrder> {
+    Point(Point<'a, B>),
+    LineString(LineString<'a, B>),
+    Polygon(Polygon<'a, B>),
+    MultiPoint(MultiPoint<'a, B>),
+    MultiLineString(MultiLineString<'a, B>),
+    MultiPolygon(MultiPolygon<'a, B>),
+    GeometryCollection(GeometryCollection<'a, B>),
 }
 
-impl<'a> Wkb<'a> {
+impl<'a, B: ByteOrder> Wkb<'a, B> {
     pub fn try_new(buf: &'a [u8]) -> WKBResult<Self> {
-        let mut reader = Cursor::new(buf);
-        let byte_order = Endianness::try_from(reader.read_u8()?).unwrap();
         let wkb_type = WKBType::from_buffer(buf)?;
 
         use Dimensions::*;
 
         let out = match wkb_type {
-            WKBType::Point => Wkb::Point(Point::new(buf, byte_order, 0, Xy)),
-            WKBType::LineString => Wkb::LineString(LineString::new(buf, byte_order, 0, Xy)),
-            WKBType::Polygon => Wkb::Polygon(Polygon::new(buf, byte_order, 0, Xy)),
-            WKBType::MultiPoint => Wkb::MultiPoint(MultiPoint::new(buf, byte_order, Xy)),
-            WKBType::MultiLineString => {
-                Wkb::MultiLineString(MultiLineString::new(buf, byte_order, Xy))
-            }
-            WKBType::MultiPolygon => Wkb::MultiPolygon(MultiPolygon::new(buf, byte_order, Xy)),
+            WKBType::Point => Wkb::Point(Point::new(buf, 0, Xy)),
+            WKBType::LineString => Wkb::LineString(LineString::new(buf, 0, Xy)),
+            WKBType::Polygon => Wkb::Polygon(Polygon::new(buf, 0, Xy)),
+            WKBType::MultiPoint => Wkb::MultiPoint(MultiPoint::new(buf, Xy)),
+            WKBType::MultiLineString => Wkb::MultiLineString(MultiLineString::new(buf, Xy)),
+            WKBType::MultiPolygon => Wkb::MultiPolygon(MultiPolygon::new(buf, Xy)),
             WKBType::GeometryCollection => {
-                Wkb::GeometryCollection(GeometryCollection::try_new(buf, byte_order, Xy)?)
+                Wkb::GeometryCollection(GeometryCollection::try_new(buf, Xy)?)
             }
-            WKBType::PointZ => Wkb::Point(Point::new(buf, byte_order, 0, Xyz)),
-            WKBType::LineStringZ => Wkb::LineString(LineString::new(buf, byte_order, 0, Xyz)),
-            WKBType::PolygonZ => Wkb::Polygon(Polygon::new(buf, byte_order, 0, Xyz)),
-            WKBType::MultiPointZ => Wkb::MultiPoint(MultiPoint::new(buf, byte_order, Xyz)),
-            WKBType::MultiLineStringZ => {
-                Wkb::MultiLineString(MultiLineString::new(buf, byte_order, Xyz))
-            }
-            WKBType::MultiPolygonZ => Wkb::MultiPolygon(MultiPolygon::new(buf, byte_order, Xyz)),
+            WKBType::PointZ => Wkb::Point(Point::new(buf, 0, Xyz)),
+            WKBType::LineStringZ => Wkb::LineString(LineString::new(buf, 0, Xyz)),
+            WKBType::PolygonZ => Wkb::Polygon(Polygon::new(buf, 0, Xyz)),
+            WKBType::MultiPointZ => Wkb::MultiPoint(MultiPoint::new(buf, Xyz)),
+            WKBType::MultiLineStringZ => Wkb::MultiLineString(MultiLineString::new(buf, Xyz)),
+            WKBType::MultiPolygonZ => Wkb::MultiPolygon(MultiPolygon::new(buf, Xyz)),
             WKBType::GeometryCollectionZ => {
-                Wkb::GeometryCollection(GeometryCollection::try_new(buf, byte_order, Xyz)?)
+                Wkb::GeometryCollection(GeometryCollection::try_new(buf, Xyz)?)
             }
         };
         Ok(out)
@@ -85,15 +76,15 @@ impl<'a> Wkb<'a> {
     }
 }
 
-impl<'a> GeometryTrait for Wkb<'a> {
+impl<'a, B: ByteOrder> GeometryTrait for Wkb<'a, B> {
     type T = f64;
-    type PointType<'b> = Point<'a> where Self: 'b;
-    type LineStringType<'b> = LineString<'a> where Self: 'b;
-    type PolygonType<'b> = Polygon<'a> where Self: 'b;
-    type MultiPointType<'b> = MultiPoint<'a> where Self: 'b;
-    type MultiLineStringType<'b> = MultiLineString<'a> where Self: 'b;
-    type MultiPolygonType<'b> = MultiPolygon<'a> where Self: 'b;
-    type GeometryCollectionType<'b> = GeometryCollection<'a> where Self: 'b;
+    type PointType<'b> = Point<'a, B> where Self: 'b;
+    type LineStringType<'b> = LineString<'a, B> where Self: 'b;
+    type PolygonType<'b> = Polygon<'a, B> where Self: 'b;
+    type MultiPointType<'b> = MultiPoint<'a, B> where Self: 'b;
+    type MultiLineStringType<'b> = MultiLineString<'a, B> where Self: 'b;
+    type MultiPolygonType<'b> = MultiPolygon<'a, B> where Self: 'b;
+    type GeometryCollectionType<'b> = GeometryCollection<'a, B> where Self: 'b;
     type RectType<'b> = UnimplementedRect<f64> where Self: 'b;
     type TriangleType<'b> = UnimplementedTriangle<f64> where Self: 'b;
     type LineType<'b> = UnimplementedLine<f64> where Self: 'b;
@@ -106,13 +97,13 @@ impl<'a> GeometryTrait for Wkb<'a> {
         &self,
     ) -> geo_traits::GeometryType<
         '_,
-        Point<'a>,
-        LineString<'a>,
-        Polygon<'a>,
-        MultiPoint<'a>,
-        MultiLineString<'a>,
-        MultiPolygon<'a>,
-        GeometryCollection<'a>,
+        Point<'a, B>,
+        LineString<'a, B>,
+        Polygon<'a, B>,
+        MultiPoint<'a, B>,
+        MultiLineString<'a, B>,
+        MultiPolygon<'a, B>,
+        GeometryCollection<'a, B>,
         UnimplementedRect<f64>,
         UnimplementedTriangle<f64>,
         UnimplementedLine<f64>,
@@ -131,15 +122,15 @@ impl<'a> GeometryTrait for Wkb<'a> {
     }
 }
 
-impl<'a> GeometryTrait for &'a Wkb<'a> {
+impl<'a, B: ByteOrder> GeometryTrait for &'a Wkb<'a, B> {
     type T = f64;
-    type PointType<'b> = Point<'a> where Self: 'b;
-    type LineStringType<'b> = LineString<'a> where Self: 'b;
-    type PolygonType<'b> = Polygon<'a> where Self: 'b;
-    type MultiPointType<'b> = MultiPoint<'a> where Self: 'b;
-    type MultiLineStringType<'b> = MultiLineString<'a> where Self: 'b;
-    type MultiPolygonType<'b> = MultiPolygon<'a> where Self: 'b;
-    type GeometryCollectionType<'b> = GeometryCollection<'a> where Self: 'b;
+    type PointType<'b> = Point<'a, B> where Self: 'b;
+    type LineStringType<'b> = LineString<'a, B> where Self: 'b;
+    type PolygonType<'b> = Polygon<'a, B> where Self: 'b;
+    type MultiPointType<'b> = MultiPoint<'a, B> where Self: 'b;
+    type MultiLineStringType<'b> = MultiLineString<'a, B> where Self: 'b;
+    type MultiPolygonType<'b> = MultiPolygon<'a, B> where Self: 'b;
+    type GeometryCollectionType<'b> = GeometryCollection<'a, B> where Self: 'b;
     type RectType<'b> = UnimplementedRect<f64> where Self: 'b;
     type TriangleType<'b> = UnimplementedTriangle<f64> where Self: 'b;
     type LineType<'b> = UnimplementedLine<f64> where Self: 'b;
@@ -152,13 +143,13 @@ impl<'a> GeometryTrait for &'a Wkb<'a> {
         &self,
     ) -> geo_traits::GeometryType<
         '_,
-        Point<'a>,
-        LineString<'a>,
-        Polygon<'a>,
-        MultiPoint<'a>,
-        MultiLineString<'a>,
-        MultiPolygon<'a>,
-        GeometryCollection<'a>,
+        Point<'a, B>,
+        LineString<'a, B>,
+        Polygon<'a, B>,
+        MultiPoint<'a, B>,
+        MultiLineString<'a, B>,
+        MultiPolygon<'a, B>,
+        GeometryCollection<'a, B>,
         UnimplementedRect<f64>,
         UnimplementedTriangle<f64>,
         UnimplementedLine<f64>,
@@ -181,15 +172,15 @@ impl<'a> GeometryTrait for &'a Wkb<'a> {
 
 macro_rules! impl_specialization {
     ($geometry_type:ident) => {
-        impl GeometryTrait for $geometry_type<'_> {
+        impl<B: ByteOrder> GeometryTrait for $geometry_type<'_, B> {
             type T = f64;
-            type PointType<'b> = Point<'b> where Self: 'b;
-            type LineStringType<'b> = LineString<'b> where Self: 'b;
-            type PolygonType<'b> = Polygon<'b> where Self: 'b;
-            type MultiPointType<'b> = MultiPoint<'b> where Self: 'b;
-            type MultiLineStringType<'b> = MultiLineString<'b> where Self: 'b;
-            type MultiPolygonType<'b> = MultiPolygon<'b> where Self: 'b;
-            type GeometryCollectionType<'b> = GeometryCollection<'b> where Self: 'b;
+            type PointType<'b> = Point<'b, B> where Self: 'b;
+            type LineStringType<'b> = LineString<'b, B> where Self: 'b;
+            type PolygonType<'b> = Polygon<'b, B> where Self: 'b;
+            type MultiPointType<'b> = MultiPoint<'b, B> where Self: 'b;
+            type MultiLineStringType<'b> = MultiLineString<'b, B> where Self: 'b;
+            type MultiPolygonType<'b> = MultiPolygon<'b, B> where Self: 'b;
+            type GeometryCollectionType<'b> = GeometryCollection<'b, B> where Self: 'b;
             type RectType<'b> = geo_traits::UnimplementedRect<f64> where Self: 'b;
             type LineType<'b> = geo_traits::UnimplementedLine<f64> where Self: 'b;
             type TriangleType<'b> = geo_traits::UnimplementedTriangle<f64> where Self: 'b;
@@ -202,13 +193,13 @@ macro_rules! impl_specialization {
                 &self,
             ) -> geo_traits::GeometryType<
                 '_,
-                Point,
-                LineString,
-                Polygon,
-                MultiPoint,
-                MultiLineString,
-                MultiPolygon,
-                GeometryCollection,
+                Point<B>,
+                LineString<B>,
+                Polygon<B>,
+                MultiPoint<B>,
+                MultiLineString<B>,
+                MultiPolygon<B>,
+                GeometryCollection<B>,
                 Self::RectType<'_>,
                 Self::TriangleType<'_>,
                 Self::LineType<'_>,
@@ -217,15 +208,15 @@ macro_rules! impl_specialization {
             }
         }
 
-        impl<'a> GeometryTrait for &'a $geometry_type<'_> {
+        impl<'a, B: ByteOrder> GeometryTrait for &'a $geometry_type<'_, B> {
             type T = f64;
-            type PointType<'b> = Point<'b> where Self: 'b;
-            type LineStringType<'b> = LineString<'b> where Self: 'b;
-            type PolygonType<'b> = Polygon<'b> where Self: 'b;
-            type MultiPointType<'b> = MultiPoint<'b> where Self: 'b;
-            type MultiLineStringType<'b> = MultiLineString<'b> where Self: 'b;
-            type MultiPolygonType<'b> = MultiPolygon<'b> where Self: 'b;
-            type GeometryCollectionType<'b> = GeometryCollection<'b> where Self: 'b;
+            type PointType<'b> = Point<'b, B> where Self: 'b;
+            type LineStringType<'b> = LineString<'b, B> where Self: 'b;
+            type PolygonType<'b> = Polygon<'b, B> where Self: 'b;
+            type MultiPointType<'b> = MultiPoint<'b, B> where Self: 'b;
+            type MultiLineStringType<'b> = MultiLineString<'b, B> where Self: 'b;
+            type MultiPolygonType<'b> = MultiPolygon<'b, B> where Self: 'b;
+            type GeometryCollectionType<'b> = GeometryCollection<'b, B> where Self: 'b;
             type RectType<'b> = geo_traits::UnimplementedRect<f64> where Self: 'b;
             type LineType<'b> = geo_traits::UnimplementedLine<f64> where Self: 'b;
             type TriangleType<'b> = geo_traits::UnimplementedTriangle<f64> where Self: 'b;
@@ -238,13 +229,13 @@ macro_rules! impl_specialization {
                 &self,
             ) -> geo_traits::GeometryType<
                 '_,
-                Point,
-                LineString,
-                Polygon,
-                MultiPoint,
-                MultiLineString,
-                MultiPolygon,
-                GeometryCollection,
+                Point<B>,
+                LineString<B>,
+                Polygon<B>,
+                MultiPoint<B>,
+                MultiLineString<B>,
+                MultiPolygon<B>,
+                GeometryCollection<B>,
                 Self::RectType<'_>,
                 Self::TriangleType<'_>,
                 Self::LineType<'_>,

@@ -2,8 +2,7 @@ use std::io::Cursor;
 
 use crate::error::WKBResult;
 use crate::reader::geometry::Wkb;
-use crate::reader::util::ReadBytesExt;
-use crate::Endianness;
+use byteorder::{ByteOrder, ReadBytesExt};
 use geo_traits::{Dimensions, GeometryCollectionTrait};
 
 /// skip endianness and wkb type
@@ -11,17 +10,17 @@ const HEADER_BYTES: u64 = 5;
 
 /// A WKB GeometryCollection
 #[derive(Debug, Clone)]
-pub struct GeometryCollection<'a> {
+pub struct GeometryCollection<'a, B: ByteOrder> {
     /// A WKB object for each of the internal geometries
-    geometries: Vec<Wkb<'a>>,
+    geometries: Vec<Wkb<'a, B>>,
     dim: Dimensions,
 }
 
-impl<'a> GeometryCollection<'a> {
-    pub fn try_new(buf: &'a [u8], byte_order: Endianness, dim: Dimensions) -> WKBResult<Self> {
+impl<'a, B: ByteOrder> GeometryCollection<'a, B> {
+    pub fn try_new(buf: &'a [u8], dim: Dimensions) -> WKBResult<Self> {
         let mut reader = Cursor::new(buf);
         reader.set_position(HEADER_BYTES);
-        let num_geometries = reader.read_u32(byte_order).unwrap().try_into().unwrap();
+        let num_geometries = reader.read_u32::<B>().unwrap().try_into().unwrap();
 
         // - 1: byteOrder
         // - 4: wkbType
@@ -51,9 +50,9 @@ impl<'a> GeometryCollection<'a> {
     }
 }
 
-impl<'a> GeometryCollectionTrait for GeometryCollection<'a> {
+impl<'a, B: ByteOrder> GeometryCollectionTrait for GeometryCollection<'a, B> {
     type T = f64;
-    type GeometryType<'b> = &'b Wkb<'b> where Self: 'b;
+    type GeometryType<'b> = &'b Wkb<'b, B> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
         self.dim

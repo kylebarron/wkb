@@ -1,8 +1,7 @@
 use std::io::Cursor;
 
 use crate::reader::linearring::WKBLinearRing;
-use crate::reader::util::ReadBytesExt;
-use crate::Endianness;
+use byteorder::{ByteOrder, ReadBytesExt};
 use geo_traits::Dimensions;
 use geo_traits::PolygonTrait;
 
@@ -12,20 +11,20 @@ const WKB_POLYGON_TYPE: u32 = 3;
 ///
 /// This has been preprocessed, so access to any internal coordinate is `O(1)`.
 #[derive(Debug, Clone)]
-pub struct Polygon<'a> {
-    wkb_linear_rings: Vec<WKBLinearRing<'a>>,
+pub struct Polygon<'a, B: ByteOrder> {
+    wkb_linear_rings: Vec<WKBLinearRing<'a, B>>,
     dim: Dimensions,
 }
 
-impl<'a> Polygon<'a> {
-    pub fn new(buf: &'a [u8], byte_order: Endianness, offset: u64, dim: Dimensions) -> Self {
+impl<'a, B: ByteOrder> Polygon<'a, B> {
+    pub fn new(buf: &'a [u8], offset: u64, dim: Dimensions) -> Self {
         let mut reader = Cursor::new(buf);
         reader.set_position(1 + offset);
 
         // Assert that this is indeed a 2D Polygon
-        assert_eq!(WKB_POLYGON_TYPE, reader.read_u32(byte_order).unwrap());
+        assert_eq!(WKB_POLYGON_TYPE, reader.read_u32::<B>().unwrap());
 
-        let num_rings = reader.read_u32(byte_order).unwrap().try_into().unwrap();
+        let num_rings = reader.read_u32::<B>().unwrap().try_into().unwrap();
 
         // - existing offset into buffer
         // - 1: byteOrder
@@ -34,7 +33,7 @@ impl<'a> Polygon<'a> {
         let mut ring_offset = offset + 1 + 4 + 4;
         let mut wkb_linear_rings = Vec::with_capacity(num_rings);
         for _ in 0..num_rings {
-            let polygon = WKBLinearRing::new(buf, byte_order, ring_offset, dim);
+            let polygon = WKBLinearRing::new(buf, ring_offset, dim);
             wkb_linear_rings.push(polygon);
             ring_offset += polygon.size();
         }
@@ -67,9 +66,9 @@ impl<'a> Polygon<'a> {
     }
 }
 
-impl<'a> PolygonTrait for Polygon<'a> {
+impl<'a, B: ByteOrder> PolygonTrait for Polygon<'a, B> {
     type T = f64;
-    type RingType<'b> = WKBLinearRing<'a>where Self: 'b;
+    type RingType<'b> = WKBLinearRing<'a, B> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
         self.dim
@@ -97,9 +96,9 @@ impl<'a> PolygonTrait for Polygon<'a> {
     }
 }
 
-impl<'a> PolygonTrait for &'a Polygon<'a> {
+impl<'a, B: ByteOrder> PolygonTrait for &'a Polygon<'a, B> {
     type T = f64;
-    type RingType<'b> = WKBLinearRing<'a> where Self: 'b;
+    type RingType<'b> = WKBLinearRing<'a, B> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
         self.dim
