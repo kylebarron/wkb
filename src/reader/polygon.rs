@@ -16,7 +16,6 @@ const WKB_POLYGON_TYPE: u32 = 3;
 #[derive(Debug, Clone)]
 pub struct Polygon<'a> {
     wkb_linear_rings: Vec<WKBLinearRing<'a>>,
-    // #[allow(dead_code)]
     dim: Dimensions,
 }
 

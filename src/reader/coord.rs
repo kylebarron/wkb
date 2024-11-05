@@ -75,7 +75,6 @@ impl<'a> Coord<'a> {
     /// The number of bytes in this object
     ///
     /// Note that this is not the same as the length of the underlying buffer
-    #[allow(dead_code)]
     pub fn size(&self) -> u64 {
         // A 2D Coord is just two f64s
         self.dim.size() as u64 * 8
