@@ -24,10 +24,10 @@ pub fn write_multi_point<W: Write>(
 
     match geom.dim() {
         Dimensions::Xy | Dimensions::Unknown(2) => {
-            writer.write_u32::<LittleEndian>(WKBType::MultiPoint.into())?;
+            WKBType::MultiPoint.serialize(&mut writer, endianness)?;
         }
         Dimensions::Xyz | Dimensions::Unknown(3) => {
-            writer.write_u32::<LittleEndian>(WKBType::MultiPointZ.into())?;
+            WKBType::MultiPointZ.serialize(&mut writer, endianness)?;
         }
         _ => panic!(),
     }
