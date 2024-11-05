@@ -13,7 +13,6 @@ rust-version = "1.82"
 
 [dependencies]
 byteorder = "1"
-enum-as-inner = "0.6.1"
 geo-traits = "0.1.1"
 num_enum = "0.7"
 thiserror = "1"
@@ -22,6 +21,12 @@ thiserror = "1"
 approx = "0.5.1"
 bytes = "1.5.0"
 criterion = { version = "0.5", features = ["html_reports"] }
+geo-types = "0.7.13"
+wkt = { git = "https://github.com/georust/wkt", branch = "kyle/geo-traits" }
+
+[[bench]]
+name = "parse"
+harness = false
 
 [lib]
 doctest = true
