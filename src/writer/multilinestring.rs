@@ -22,20 +22,11 @@ pub fn write_multi_line_string<W: Write>(
     geom: &impl MultiLineStringTrait<T = f64>,
     endianness: Endianness,
 ) -> WKBResult<()> {
-    use geo_traits::Dimensions;
-
     // Byte order
     writer.write_u8(endianness.into())?;
 
-    match geom.dim() {
-        Dimensions::Xy | Dimensions::Unknown(2) => {
-            writer.write_u32::<LittleEndian>(WKBType::MultiLineString.into())?;
-        }
-        Dimensions::Xyz | Dimensions::Unknown(3) => {
-            writer.write_u32::<LittleEndian>(WKBType::MultiLineStringZ.into())?;
-        }
-        _ => panic!(),
-    }
+    let wkb_type = WKBType::MultiLineString(geom.dim().try_into()?);
+    writer.write_u32::<LittleEndian>(wkb_type.into())?;
 
     // numPoints
     writer.write_u32::<LittleEndian>(geom.num_line_strings().try_into().unwrap())?;

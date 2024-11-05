@@ -22,20 +22,11 @@ pub fn write_multi_polygon<W: Write>(
     geom: &impl MultiPolygonTrait<T = f64>,
     endianness: Endianness,
 ) -> WKBResult<()> {
-    use geo_traits::Dimensions;
-
     // Byte order
     writer.write_u8(endianness.into())?;
 
-    match geom.dim() {
-        Dimensions::Xy | Dimensions::Unknown(2) => {
-            writer.write_u32::<LittleEndian>(WKBType::MultiPolygon.into())?;
-        }
-        Dimensions::Xyz | Dimensions::Unknown(3) => {
-            writer.write_u32::<LittleEndian>(WKBType::MultiPolygonZ.into())?;
-        }
-        _ => panic!(),
-    }
+    let wkb_type = WKBType::MultiPolygon(geom.dim().try_into()?);
+    writer.write_u32::<LittleEndian>(wkb_type.into())?;
 
     // numPolygons
     writer.write_u32::<LittleEndian>(geom.num_polygons().try_into().unwrap())?;

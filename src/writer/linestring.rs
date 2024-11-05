@@ -33,17 +33,8 @@ fn write_line_string_content<W: Write, B: ByteOrder>(
     writer: &mut W,
     geom: &impl LineStringTrait<T = f64>,
 ) -> WKBResult<()> {
-    use geo_traits::Dimensions;
-
-    match geom.dim() {
-        Dimensions::Xy | Dimensions::Unknown(2) => {
-            writer.write_u32::<B>(WKBType::LineString.into()).unwrap();
-        }
-        Dimensions::Xyz | Dimensions::Unknown(3) => {
-            writer.write_u32::<B>(WKBType::LineStringZ.into()).unwrap();
-        }
-        _ => panic!(),
-    }
+    let wkb_type = WKBType::LineString(geom.dim().try_into()?);
+    writer.write_u32::<LittleEndian>(wkb_type.into())?;
 
     // numPoints
     writer
