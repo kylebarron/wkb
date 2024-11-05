@@ -1,8 +1,8 @@
 use std::io::Cursor;
+use std::marker::PhantomData;
 
 use crate::reader::coord::Coord;
-use crate::reader::util::ReadBytesExt;
-use crate::Endianness;
+use byteorder::{ByteOrder, ReadBytesExt};
 use geo_traits::Dimensions;
 use geo_traits::LineStringTrait;
 
@@ -12,12 +12,12 @@ use geo_traits::LineStringTrait;
 ///
 /// See page 65 of <https://portal.ogc.org/files/?artifact_id=25355>.
 #[derive(Debug, Clone, Copy)]
-pub struct WKBLinearRing<'a> {
+pub struct WKBLinearRing<'a, B: ByteOrder> {
     /// The underlying WKB buffer
     buf: &'a [u8],
 
     /// The byte order of this WKB buffer
-    byte_order: Endianness,
+    byte_order: PhantomData<B>,
 
     /// The offset into the buffer where this linear ring is located
     ///
@@ -33,18 +33,18 @@ pub struct WKBLinearRing<'a> {
     dim: Dimensions,
 }
 
-impl<'a> WKBLinearRing<'a> {
-    pub fn new(buf: &'a [u8], byte_order: Endianness, offset: u64, dim: Dimensions) -> Self {
+impl<'a, B: ByteOrder> WKBLinearRing<'a, B> {
+    pub fn new(buf: &'a [u8], offset: u64, dim: Dimensions) -> Self {
         let mut reader = Cursor::new(buf);
         reader.set_position(offset);
-        let num_points = reader.read_u32(byte_order).unwrap().try_into().unwrap();
+        let num_points = reader.read_u32::<B>().unwrap().try_into().unwrap();
 
         Self {
             buf,
-            byte_order,
             offset,
             num_points,
             dim,
+            byte_order: PhantomData,
         }
     }
 
@@ -63,9 +63,9 @@ impl<'a> WKBLinearRing<'a> {
     }
 }
 
-impl<'a> LineStringTrait for WKBLinearRing<'a> {
+impl<'a, B: ByteOrder> LineStringTrait for WKBLinearRing<'a, B> {
     type T = f64;
-    type CoordType<'b> = Coord<'a> where Self: 'b;
+    type CoordType<'b> = Coord<'a, B> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
         self.dim
@@ -76,11 +76,6 @@ impl<'a> LineStringTrait for WKBLinearRing<'a> {
     }
 
     unsafe fn coord_unchecked(&self, i: usize) -> Self::CoordType<'_> {
-        Coord::new(
-            self.buf,
-            self.byte_order,
-            self.coord_offset(i.try_into().unwrap()),
-            self.dim,
-        )
+        Coord::new(self.buf, self.coord_offset(i.try_into().unwrap()), self.dim)
     }
 }

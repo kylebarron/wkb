@@ -1,7 +1,8 @@
-use crate::reader::coord::Coord;
-use crate::Endianness;
+use byteorder::ByteOrder;
 use geo_traits::Dimensions;
 use geo_traits::{CoordTrait, PointTrait};
+
+use crate::reader::coord::Coord;
 
 /// A WKB Point.
 ///
@@ -9,18 +10,18 @@ use geo_traits::{CoordTrait, PointTrait};
 ///
 /// See page 66 of <https://portal.ogc.org/files/?artifact_id=25355>.
 #[derive(Debug, Clone, Copy)]
-pub struct Point<'a> {
+pub struct Point<'a, B: ByteOrder> {
     /// The coordinate inside this Point
-    coord: Coord<'a>,
+    coord: Coord<'a, B>,
     dim: Dimensions,
     is_empty: bool,
 }
 
-impl<'a> Point<'a> {
-    pub fn new(buf: &'a [u8], byte_order: Endianness, offset: u64, dim: Dimensions) -> Self {
+impl<'a, B: ByteOrder> Point<'a, B> {
+    pub fn new(buf: &'a [u8], offset: u64, dim: Dimensions) -> Self {
         // The space of the byte order + geometry type
         let offset = offset + 5;
-        let coord = Coord::new(buf, byte_order, offset, dim);
+        let coord = Coord::new(buf, offset, dim);
         let is_empty =
             (0..coord.dim().size()).all(|coord_dim| coord.nth_unchecked(coord_dim).is_nan());
         Self {
@@ -46,9 +47,9 @@ impl<'a> Point<'a> {
     }
 }
 
-impl<'a> PointTrait for Point<'a> {
+impl<'a, B: ByteOrder> PointTrait for Point<'a, B> {
     type T = f64;
-    type CoordType<'b> = Coord<'a> where Self: 'b;
+    type CoordType<'b> = Coord<'a, B> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
         self.dim
@@ -63,9 +64,9 @@ impl<'a> PointTrait for Point<'a> {
     }
 }
 
-impl<'a> PointTrait for &Point<'a> {
+impl<'a, B: ByteOrder> PointTrait for &Point<'a, B> {
     type T = f64;
-    type CoordType<'b> = Coord<'a> where Self: 'b;
+    type CoordType<'b> = Coord<'a, B> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
         self.dim

@@ -1,8 +1,7 @@
 use std::io::Cursor;
 
 use crate::reader::linestring::LineString;
-use crate::reader::util::ReadBytesExt;
-use crate::Endianness;
+use byteorder::{ByteOrder, ReadBytesExt};
 use geo_traits::Dimensions;
 use geo_traits::MultiLineStringTrait;
 
@@ -12,17 +11,17 @@ const HEADER_BYTES: u64 = 5;
 ///
 /// This has been preprocessed, so access to any internal coordinate is `O(1)`.
 #[derive(Debug, Clone)]
-pub struct MultiLineString<'a> {
+pub struct MultiLineString<'a, B: ByteOrder> {
     /// A LineString object for each of the internal line strings
-    wkb_line_strings: Vec<LineString<'a>>,
+    wkb_line_strings: Vec<LineString<'a, B>>,
     dim: Dimensions,
 }
 
-impl<'a> MultiLineString<'a> {
-    pub(crate) fn new(buf: &'a [u8], byte_order: Endianness, dim: Dimensions) -> Self {
+impl<'a, B: ByteOrder> MultiLineString<'a, B> {
+    pub(crate) fn new(buf: &'a [u8], dim: Dimensions) -> Self {
         let mut reader = Cursor::new(buf);
         reader.set_position(HEADER_BYTES);
-        let num_line_strings = reader.read_u32(byte_order).unwrap().try_into().unwrap();
+        let num_line_strings = reader.read_u32::<B>().unwrap().try_into().unwrap();
 
         // - 1: byteOrder
         // - 4: wkbType
@@ -30,7 +29,7 @@ impl<'a> MultiLineString<'a> {
         let mut line_string_offset = 1 + 4 + 4;
         let mut wkb_line_strings = Vec::with_capacity(num_line_strings);
         for _ in 0..num_line_strings {
-            let ls = LineString::new(buf, byte_order, line_string_offset, dim);
+            let ls = LineString::new(buf, line_string_offset, dim);
             wkb_line_strings.push(ls);
             line_string_offset += ls.size();
         }
@@ -59,9 +58,9 @@ impl<'a> MultiLineString<'a> {
     }
 }
 
-impl<'a> MultiLineStringTrait for MultiLineString<'a> {
+impl<'a, B: ByteOrder> MultiLineStringTrait for MultiLineString<'a, B> {
     type T = f64;
-    type LineStringType<'b> = LineString<'a> where Self: 'b;
+    type LineStringType<'b> = LineString<'a, B> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
         self.dim
@@ -76,9 +75,9 @@ impl<'a> MultiLineStringTrait for MultiLineString<'a> {
     }
 }
 
-impl<'a> MultiLineStringTrait for &'a MultiLineString<'a> {
+impl<'a, B: ByteOrder> MultiLineStringTrait for &'a MultiLineString<'a, B> {
     type T = f64;
-    type LineStringType<'b> = LineString<'a> where Self: 'b;
+    type LineStringType<'b> = LineString<'a, B> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
         self.dim
