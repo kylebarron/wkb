@@ -37,7 +37,7 @@ pub fn write_multi_polygon<W: Write>(
 }
 
 fn write_multi_polygon_content<W: Write, B: ByteOrder>(
-    mut writer: W,
+    writer: &mut W,
     geom: &impl MultiPolygonTrait<T = f64>,
     endianness: Endianness,
 ) -> WKBResult<()> {

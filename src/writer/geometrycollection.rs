@@ -38,7 +38,7 @@ pub fn write_geometry_collection<W: Write>(
 }
 
 fn write_geometry_collection_content<W: Write, B: ByteOrder>(
-    mut writer: W,
+    writer: &mut W,
     geom: &impl GeometryCollectionTrait<T = f64>,
     endianness: Endianness,
 ) -> WKBResult<()> {

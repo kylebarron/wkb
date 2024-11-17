@@ -32,7 +32,7 @@ pub fn write_multi_point<W: Write>(
 }
 
 fn write_multi_point_content<W: Write, B: ByteOrder>(
-    mut writer: W,
+    writer: &mut W,
     geom: &impl MultiPointTrait<T = f64>,
     endianness: Endianness,
 ) -> WKBResult<()> {

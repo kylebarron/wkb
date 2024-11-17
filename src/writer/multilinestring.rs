@@ -37,7 +37,7 @@ pub fn write_multi_line_string<W: Write>(
 }
 
 fn write_multi_line_string_content<W: Write, B: ByteOrder>(
-    mut writer: W,
+    writer: &mut W,
     geom: &impl MultiLineStringTrait<T = f64>,
     endianness: Endianness,
 ) -> WKBResult<()> {
