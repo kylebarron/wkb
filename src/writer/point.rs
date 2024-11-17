@@ -34,24 +34,18 @@ fn write_point_content<W: Write, B: ByteOrder>(
     writer: &mut W,
     geom: &impl PointTrait<T = f64>,
 ) -> WKBResult<()> {
-    use geo_traits::Dimensions;
-
-    match geom.dim() {
-        Dimensions::Xy | Dimensions::Unknown(2) => {
-            writer.write_u32::<B>(WKBType::Point.into())?;
-        }
-        Dimensions::Xyz | Dimensions::Unknown(3) => {
-            writer.write_u32::<B>(WKBType::PointZ.into())?;
-        }
-        _ => panic!(),
-    }
+    let wkb_type = WKBType::Point(geom.dim().try_into()?);
+    writer.write_u32::<LittleEndian>(wkb_type.into())?;
 
     if let Some(coord) = geom.coord() {
         writer.write_f64::<B>(coord.x())?;
         writer.write_f64::<B>(coord.y())?;
 
-        if coord.dim().size() == 3 {
+        if coord.dim().size() >= 3 {
             writer.write_f64::<B>(coord.nth_unchecked(2))?;
+        }
+        if coord.dim().size() >= 4 {
+            writer.write_f64::<B>(coord.nth_unchecked(3))?;
         }
     } else {
         // Write POINT EMPTY as f64::NAN values

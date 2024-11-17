@@ -41,17 +41,8 @@ fn write_multi_polygon_content<W: Write, B: ByteOrder>(
     geom: &impl MultiPolygonTrait<T = f64>,
     endianness: Endianness,
 ) -> WKBResult<()> {
-    use geo_traits::Dimensions;
-
-    match geom.dim() {
-        Dimensions::Xy | Dimensions::Unknown(2) => {
-            writer.write_u32::<B>(WKBType::MultiPolygon.into())?;
-        }
-        Dimensions::Xyz | Dimensions::Unknown(3) => {
-            writer.write_u32::<B>(WKBType::MultiPolygonZ.into())?;
-        }
-        _ => panic!(),
-    }
+    let wkb_type = WKBType::MultiPolygon(geom.dim().try_into()?);
+    writer.write_u32::<B>(wkb_type.into())?;
 
     // numPolygons
     writer.write_u32::<B>(geom.num_polygons().try_into().unwrap())?;

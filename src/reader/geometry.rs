@@ -29,30 +29,23 @@ impl<'a> Wkb<'a> {
         let byte_order = Endianness::try_from(reader.read_u8()?).unwrap();
         let wkb_type = WKBType::from_buffer(buf)?;
 
-        use Dimensions::*;
-
         let out = match wkb_type {
-            WKBType::Point => Wkb::Point(Point::new(buf, byte_order, 0, Xy)),
-            WKBType::LineString => Wkb::LineString(LineString::new(buf, byte_order, 0, Xy)),
-            WKBType::Polygon => Wkb::Polygon(Polygon::new(buf, byte_order, 0, Xy)),
-            WKBType::MultiPoint => Wkb::MultiPoint(MultiPoint::new(buf, byte_order, Xy)),
-            WKBType::MultiLineString => {
-                Wkb::MultiLineString(MultiLineString::new(buf, byte_order, Xy))
+            WKBType::Point(dim) => Wkb::Point(Point::new(buf, byte_order, 0, dim.into())),
+            WKBType::LineString(dim) => {
+                Wkb::LineString(LineString::new(buf, byte_order, 0, dim.into()))
             }
-            WKBType::MultiPolygon => Wkb::MultiPolygon(MultiPolygon::new(buf, byte_order, Xy)),
-            WKBType::GeometryCollection => {
-                Wkb::GeometryCollection(GeometryCollection::try_new(buf, byte_order, Xy)?)
+            WKBType::Polygon(dim) => Wkb::Polygon(Polygon::new(buf, byte_order, 0, dim.into())),
+            WKBType::MultiPoint(dim) => {
+                Wkb::MultiPoint(MultiPoint::new(buf, byte_order, dim.into()))
             }
-            WKBType::PointZ => Wkb::Point(Point::new(buf, byte_order, 0, Xyz)),
-            WKBType::LineStringZ => Wkb::LineString(LineString::new(buf, byte_order, 0, Xyz)),
-            WKBType::PolygonZ => Wkb::Polygon(Polygon::new(buf, byte_order, 0, Xyz)),
-            WKBType::MultiPointZ => Wkb::MultiPoint(MultiPoint::new(buf, byte_order, Xyz)),
-            WKBType::MultiLineStringZ => {
-                Wkb::MultiLineString(MultiLineString::new(buf, byte_order, Xyz))
+            WKBType::MultiLineString(dim) => {
+                Wkb::MultiLineString(MultiLineString::new(buf, byte_order, dim.into()))
             }
-            WKBType::MultiPolygonZ => Wkb::MultiPolygon(MultiPolygon::new(buf, byte_order, Xyz)),
-            WKBType::GeometryCollectionZ => {
-                Wkb::GeometryCollection(GeometryCollection::try_new(buf, byte_order, Xyz)?)
+            WKBType::MultiPolygon(dim) => {
+                Wkb::MultiPolygon(MultiPolygon::new(buf, byte_order, dim.into()))
+            }
+            WKBType::GeometryCollection(dim) => {
+                Wkb::GeometryCollection(GeometryCollection::try_new(buf, byte_order, dim.into())?)
             }
         };
         Ok(out)

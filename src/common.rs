@@ -5,38 +5,77 @@ use num_enum::{IntoPrimitive, TryFromPrimitive};
 
 use crate::error::{WKBError, WKBResult};
 
+/// Supported WKB dimensions
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum WKBDimension {
+    Xy,
+    Xyz,
+    Xym,
+    Xyzm,
+}
+
+impl WKBDimension {
+    fn as_u32_offset(&self) -> u32 {
+        match self {
+            Self::Xy => 0,
+            Self::Xyz => 1000,
+            Self::Xym => 2000,
+            Self::Xyzm => 3000,
+        }
+    }
+}
+
+impl TryFrom<geo_traits::Dimensions> for WKBDimension {
+    type Error = WKBError;
+
+    fn try_from(value: geo_traits::Dimensions) -> Result<Self, Self::Error> {
+        use geo_traits::Dimensions::*;
+
+        let result = match value {
+            Xy | Unknown(2) => Self::Xy,
+            Xyz | Unknown(3) => Self::Xyz,
+            Xym => Self::Xym,
+            Xyzm | Unknown(4) => Self::Xyzm,
+            // TODO: switch to tryfrom
+            Unknown(n_dim) => {
+                return Err(WKBError::General(format!(
+                    "Unsupported number of dimensions: {}",
+                    n_dim
+                )))
+            }
+        };
+        Ok(result)
+    }
+}
+
+impl From<WKBDimension> for geo_traits::Dimensions {
+    fn from(value: WKBDimension) -> Self {
+        match value {
+            WKBDimension::Xy => Self::Xy,
+            WKBDimension::Xyz => Self::Xyz,
+            WKBDimension::Xym => Self::Xym,
+            WKBDimension::Xyzm => Self::Xyzm,
+        }
+    }
+}
+
 /// The various WKB types supported by this crate
-#[derive(Clone, Copy, Debug, PartialEq, TryFromPrimitive, IntoPrimitive)]
-#[repr(u32)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum WKBType {
     /// A WKB Point
-    Point = 1,
+    Point(WKBDimension),
     /// A WKB LineString
-    LineString = 2,
+    LineString(WKBDimension),
     /// A WKB Polygon
-    Polygon = 3,
+    Polygon(WKBDimension),
     /// A WKB MultiPoint
-    MultiPoint = 4,
+    MultiPoint(WKBDimension),
     /// A WKB MultiLineString
-    MultiLineString = 5,
+    MultiLineString(WKBDimension),
     /// A WKB MultiPolygon
-    MultiPolygon = 6,
+    MultiPolygon(WKBDimension),
     /// A WKB GeometryCollection
-    GeometryCollection = 7,
-    /// A WKB PointZ
-    PointZ = 1001,
-    /// A WKB LineStringZ
-    LineStringZ = 1002,
-    /// A WKB PolygonZ
-    PolygonZ = 1003,
-    /// A WKB MultiPointZ
-    MultiPointZ = 1004,
-    /// A WKB MultiLineStringZ
-    MultiLineStringZ = 1005,
-    /// A WKB MultiPolygonZ
-    MultiPolygonZ = 1006,
-    /// A WKB GeometryCollectionZ
-    GeometryCollectionZ = 1007,
+    GeometryCollection(WKBDimension),
 }
 
 impl WKBType {
@@ -49,7 +88,60 @@ impl WKBType {
             1 => reader.read_u32::<LittleEndian>().unwrap(),
             other => panic!("Unexpected byte order: {}", other),
         };
-        Self::try_from_primitive(geometry_type).map_err(|err| WKBError::General(err.to_string()))
+        Self::try_from_u32(geometry_type)
+    }
+
+    pub fn try_from_u32(value: u32) -> WKBResult<Self> {
+        // Values 1, 2, 3 are 2D,
+        // 1001, 1002, 1003 are XYZ,
+        // 2001 etc are XYM,
+        // 3001 etc are XYZM
+        let dim = match value / 1000 {
+            0 => WKBDimension::Xy,
+            1 => WKBDimension::Xyz,
+            2 => WKBDimension::Xym,
+            3 => WKBDimension::Xyz,
+            _ => {
+                return Err(WKBError::General(format!(
+                    "WKB type value out of range. Got: {}",
+                    value
+                )))
+            }
+        };
+        let typ = match value % 1000 {
+            1 => WKBType::Point(dim),
+            2 => WKBType::LineString(dim),
+            3 => WKBType::Polygon(dim),
+            4 => WKBType::MultiPoint(dim),
+            5 => WKBType::MultiLineString(dim),
+            6 => WKBType::MultiPolygon(dim),
+            7 => WKBType::GeometryCollection(dim),
+            _ => {
+                return Err(WKBError::General(format!(
+                    "WKB type value out of range. Got: {}",
+                    value
+                )))
+            }
+        };
+        Ok(typ)
+    }
+
+    pub fn as_u32(&self) -> u32 {
+        match self {
+            Self::Point(dim) => 1 + dim.as_u32_offset(),
+            Self::LineString(dim) => 2 + dim.as_u32_offset(),
+            Self::Polygon(dim) => 3 + dim.as_u32_offset(),
+            Self::MultiPoint(dim) => 4 + dim.as_u32_offset(),
+            Self::MultiLineString(dim) => 5 + dim.as_u32_offset(),
+            Self::MultiPolygon(dim) => 6 + dim.as_u32_offset(),
+            Self::GeometryCollection(dim) => 7 + dim.as_u32_offset(),
+        }
+    }
+}
+
+impl From<WKBType> for u32 {
+    fn from(value: WKBType) -> Self {
+        value.as_u32()
     }
 }
 

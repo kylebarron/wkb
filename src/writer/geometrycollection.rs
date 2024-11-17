@@ -42,17 +42,8 @@ fn write_geometry_collection_content<W: Write, B: ByteOrder>(
     geom: &impl GeometryCollectionTrait<T = f64>,
     endianness: Endianness,
 ) -> WKBResult<()> {
-    use geo_traits::Dimensions;
-
-    match geom.dim() {
-        Dimensions::Xy | Dimensions::Unknown(2) => {
-            writer.write_u32::<B>(WKBType::GeometryCollection.into())?;
-        }
-        Dimensions::Xyz | Dimensions::Unknown(3) => {
-            writer.write_u32::<B>(WKBType::GeometryCollectionZ.into())?;
-        }
-        _ => panic!(),
-    }
+    let wkb_type = WKBType::GeometryCollection(geom.dim().try_into()?);
+    writer.write_u32::<B>(wkb_type.into())?;
 
     // numGeometries
     writer.write_u32::<B>(geom.num_geometries().try_into().unwrap())?;

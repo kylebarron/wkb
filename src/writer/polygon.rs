@@ -42,17 +42,8 @@ fn write_polygon_content<W: Write, B: ByteOrder>(
     writer: &mut W,
     geom: &impl PolygonTrait<T = f64>,
 ) -> WKBResult<()> {
-    use geo_traits::Dimensions;
-
-    match geom.dim() {
-        Dimensions::Xy | Dimensions::Unknown(2) => {
-            writer.write_u32::<B>(WKBType::Polygon.into())?;
-        }
-        Dimensions::Xyz | Dimensions::Unknown(3) => {
-            writer.write_u32::<B>(WKBType::PolygonZ.into())?;
-        }
-        _ => panic!(),
-    }
+    let wkb_type = WKBType::Polygon(geom.dim().try_into()?);
+    writer.write_u32::<LittleEndian>(wkb_type.into())?;
 
     // numRings
     // TODO: support empty polygons where this will panic

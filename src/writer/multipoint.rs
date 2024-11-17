@@ -36,17 +36,8 @@ fn write_multi_point_content<W: Write, B: ByteOrder>(
     geom: &impl MultiPointTrait<T = f64>,
     endianness: Endianness,
 ) -> WKBResult<()> {
-    use geo_traits::Dimensions;
-
-    match geom.dim() {
-        Dimensions::Xy | Dimensions::Unknown(2) => {
-            writer.write_u32::<B>(WKBType::MultiPoint.into())?;
-        }
-        Dimensions::Xyz | Dimensions::Unknown(3) => {
-            writer.write_u32::<B>(WKBType::MultiPointZ.into())?;
-        }
-        _ => panic!(),
-    }
+    let wkb_type = WKBType::MultiPoint(geom.dim().try_into()?);
+    writer.write_u32::<B>(wkb_type.into())?;
 
     // numPoints
     writer.write_u32::<B>(geom.num_points().try_into().unwrap())?;
