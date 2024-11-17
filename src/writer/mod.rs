@@ -1,3 +1,4 @@
+mod coord;
 mod geometry;
 mod geometrycollection;
 mod linestring;

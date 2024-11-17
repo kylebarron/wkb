@@ -1,8 +1,9 @@
 use crate::common::WKBType;
 use crate::error::WKBResult;
+use crate::writer::coord::write_coord;
 use crate::Endianness;
 use byteorder::{BigEndian, ByteOrder, LittleEndian, WriteBytesExt};
-use geo_traits::{CoordTrait, LineStringTrait, PolygonTrait};
+use geo_traits::{LineStringTrait, PolygonTrait};
 use std::io::Write;
 
 /// The byte length of a Polygon
@@ -57,11 +58,7 @@ fn write_polygon_content<W: Write, B: ByteOrder>(
         writer.write_u32::<B>(ext_ring.num_coords().try_into().unwrap())?;
 
         for coord in ext_ring.coords() {
-            writer.write_f64::<B>(coord.x())?;
-            writer.write_f64::<B>(coord.y())?;
-            if geom.dim().size() == 3 {
-                writer.write_f64::<B>(coord.nth_unchecked(2))?;
-            }
+            write_coord::<W, B>(writer, &coord)?;
         }
     }
 
@@ -69,11 +66,7 @@ fn write_polygon_content<W: Write, B: ByteOrder>(
         writer.write_u32::<B>(int_ring.num_coords().try_into().unwrap())?;
 
         for coord in int_ring.coords() {
-            writer.write_f64::<B>(coord.x())?;
-            writer.write_f64::<B>(coord.y())?;
-            if geom.dim().size() == 3 {
-                writer.write_f64::<B>(coord.nth_unchecked(2))?;
-            }
+            write_coord::<W, B>(writer, &coord)?;
         }
     }
 
