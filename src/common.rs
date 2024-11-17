@@ -1,6 +1,6 @@
-use std::io::{Cursor, Write};
+use std::io::Cursor;
 
-use byteorder::{BigEndian, LittleEndian, ReadBytesExt, WriteBytesExt};
+use byteorder::{BigEndian, LittleEndian, ReadBytesExt};
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 
 use crate::error::{WKBError, WKBResult};
@@ -47,22 +47,9 @@ impl WKBType {
         let geometry_type = match byte_order {
             0 => reader.read_u32::<BigEndian>().unwrap(),
             1 => reader.read_u32::<LittleEndian>().unwrap(),
-            _ => panic!("Unexpected byte order."),
+            other => panic!("Unexpected byte order: {}", other),
         };
         Self::try_from_primitive(geometry_type).map_err(|err| WKBError::General(err.to_string()))
-    }
-
-    /// Serialize this type as a u32 in the WKB writer.
-    pub(crate) fn serialize<W: Write>(
-        &self,
-        writer: &mut W,
-        endianness: Endianness,
-    ) -> WKBResult<()> {
-        match endianness {
-            Endianness::LittleEndian => writer.write_u32::<LittleEndian>((*self).into())?,
-            Endianness::BigEndian => writer.write_u32::<BigEndian>((*self).into())?,
-        };
-        Ok(())
     }
 }
 
