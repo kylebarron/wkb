@@ -36,7 +36,6 @@ impl TryFrom<geo_traits::Dimensions> for WKBDimension {
             Xyz | Unknown(3) => Self::Xyz,
             Xym => Self::Xym,
             Xyzm | Unknown(4) => Self::Xyzm,
-            // TODO: switch to tryfrom
             Unknown(n_dim) => {
                 return Err(WKBError::General(format!(
                     "Unsupported number of dimensions: {}",
@@ -86,7 +85,12 @@ impl WKBType {
         let geometry_type = match byte_order {
             0 => reader.read_u32::<BigEndian>().unwrap(),
             1 => reader.read_u32::<LittleEndian>().unwrap(),
-            other => panic!("Unexpected byte order: {}", other),
+            other => {
+                return Err(WKBError::General(format!(
+                    "Unexpected byte order: {}",
+                    other
+                )))
+            }
         };
         Self::try_from_u32(geometry_type)
     }

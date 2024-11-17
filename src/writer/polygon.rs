@@ -11,9 +11,9 @@ pub fn polygon_wkb_size(geom: &impl PolygonTrait) -> usize {
 
     let each_coord = geom.dim().size() * 8;
 
-    // TODO: support empty polygons where this will panic
-    let ext_ring = geom.exterior().unwrap();
-    sum += 4 + (ext_ring.num_coords() * each_coord);
+    if let Some(ext_ring) = geom.exterior() {
+        sum += 4 + (ext_ring.num_coords() * each_coord);
+    }
 
     for int_ring in geom.interiors() {
         sum += 4 + (int_ring.num_coords() * each_coord);
@@ -46,18 +46,22 @@ fn write_polygon_content<W: Write, B: ByteOrder>(
     writer.write_u32::<LittleEndian>(wkb_type.into())?;
 
     // numRings
-    // TODO: support empty polygons where this will panic
-    let num_rings = 1 + geom.num_interiors();
+    let num_rings = if geom.exterior().is_some() {
+        1 + geom.num_interiors()
+    } else {
+        0
+    };
     writer.write_u32::<B>(num_rings.try_into().unwrap())?;
 
-    let ext_ring = geom.exterior().unwrap();
-    writer.write_u32::<B>(ext_ring.num_coords().try_into().unwrap())?;
+    if let Some(ext_ring) = geom.exterior() {
+        writer.write_u32::<B>(ext_ring.num_coords().try_into().unwrap())?;
 
-    for coord in ext_ring.coords() {
-        writer.write_f64::<B>(coord.x())?;
-        writer.write_f64::<B>(coord.y())?;
-        if geom.dim().size() == 3 {
-            writer.write_f64::<B>(coord.nth_unchecked(2))?;
+        for coord in ext_ring.coords() {
+            writer.write_f64::<B>(coord.x())?;
+            writer.write_f64::<B>(coord.y())?;
+            if geom.dim().size() == 3 {
+                writer.write_f64::<B>(coord.nth_unchecked(2))?;
+            }
         }
     }
 
