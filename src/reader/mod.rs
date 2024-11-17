@@ -16,6 +16,7 @@ mod multipoint;
 mod multipolygon;
 mod point;
 mod polygon;
+mod util;
 
 use geometry::Wkb;
 use geometry_collection::GeometryCollection;
@@ -30,6 +31,6 @@ use geo_traits::GeometryTrait;
 
 use crate::error::WKBResult;
 
-pub fn read_wkb(buf: &[u8]) -> WKBResult<impl GeometryTrait + use<'_>> {
+pub fn read_wkb(buf: &[u8]) -> WKBResult<impl GeometryTrait<T = f64> + use<'_>> {
     Wkb::try_new(buf)
 }

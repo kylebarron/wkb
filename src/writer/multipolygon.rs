@@ -2,7 +2,7 @@ use crate::common::WKBType;
 use crate::error::WKBResult;
 use crate::writer::polygon::{polygon_wkb_size, write_polygon};
 use crate::Endianness;
-use byteorder::{LittleEndian, WriteBytesExt};
+use byteorder::{BigEndian, ByteOrder, LittleEndian, WriteBytesExt};
 use geo_traits::MultiPolygonTrait;
 use std::io::Write;
 
@@ -25,11 +25,27 @@ pub fn write_multi_polygon<W: Write>(
     // Byte order
     writer.write_u8(endianness.into())?;
 
+    // Content
+    match endianness {
+        Endianness::LittleEndian => {
+            write_multi_polygon_content::<W, LittleEndian>(writer, geom, endianness)
+        }
+        Endianness::BigEndian => {
+            write_multi_polygon_content::<W, BigEndian>(writer, geom, endianness)
+        }
+    }
+}
+
+fn write_multi_polygon_content<W: Write, B: ByteOrder>(
+    writer: &mut W,
+    geom: &impl MultiPolygonTrait<T = f64>,
+    endianness: Endianness,
+) -> WKBResult<()> {
     let wkb_type = WKBType::MultiPolygon(geom.dim().try_into()?);
-    writer.write_u32::<LittleEndian>(wkb_type.into())?;
+    writer.write_u32::<B>(wkb_type.into())?;
 
     // numPolygons
-    writer.write_u32::<LittleEndian>(geom.num_polygons().try_into().unwrap())?;
+    writer.write_u32::<B>(geom.num_polygons().try_into().unwrap())?;
 
     for polygon in geom.polygons() {
         write_polygon(writer, &polygon, endianness)?;

@@ -1,11 +1,10 @@
 use std::io::Cursor;
 
-use byteorder::{BigEndian, LittleEndian, ReadBytesExt};
-
 use crate::reader::coord::Coord;
+use crate::reader::util::ReadBytesExt;
 use crate::Endianness;
 use geo_traits::Dimensions;
-use geo_traits::{LineStringTrait, MultiLineStringTrait};
+use geo_traits::LineStringTrait;
 
 const HEADER_BYTES: u64 = 5;
 
@@ -30,14 +29,7 @@ impl<'a> LineString<'a> {
     pub fn new(buf: &'a [u8], byte_order: Endianness, offset: u64, dim: Dimensions) -> Self {
         let mut reader = Cursor::new(buf);
         reader.set_position(HEADER_BYTES + offset);
-        let num_points = match byte_order {
-            Endianness::BigEndian => reader.read_u32::<BigEndian>().unwrap().try_into().unwrap(),
-            Endianness::LittleEndian => reader
-                .read_u32::<LittleEndian>()
-                .unwrap()
-                .try_into()
-                .unwrap(),
-        };
+        let num_points = reader.read_u32(byte_order).unwrap().try_into().unwrap();
 
         Self {
             buf,
@@ -110,39 +102,5 @@ impl<'a> LineStringTrait for &'a LineString<'a> {
             self.coord_offset(i.try_into().unwrap()),
             self.dim,
         )
-    }
-}
-
-impl<'a> MultiLineStringTrait for LineString<'a> {
-    type T = f64;
-    type LineStringType<'b> = LineString<'a> where Self: 'b;
-
-    fn dim(&self) -> Dimensions {
-        self.dim
-    }
-
-    fn num_line_strings(&self) -> usize {
-        1
-    }
-
-    unsafe fn line_string_unchecked(&self, _i: usize) -> Self::LineStringType<'_> {
-        *self
-    }
-}
-
-impl<'a> MultiLineStringTrait for &'a LineString<'a> {
-    type T = f64;
-    type LineStringType<'b> = LineString<'a> where Self: 'b;
-
-    fn dim(&self) -> Dimensions {
-        self.dim
-    }
-
-    fn num_line_strings(&self) -> usize {
-        1
-    }
-
-    unsafe fn line_string_unchecked(&self, _i: usize) -> Self::LineStringType<'_> {
-        **self
     }
 }
