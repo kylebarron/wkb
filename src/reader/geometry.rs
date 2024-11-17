@@ -176,3 +176,89 @@ impl<'a> GeometryTrait for &'a Wkb<'a> {
         }
     }
 }
+
+// Specialized implementations on each WKT concrete type.
+
+macro_rules! impl_specialization {
+    ($geometry_type:ident) => {
+        impl GeometryTrait for $geometry_type<'_> {
+            type T = f64;
+            type PointType<'b> = Point<'b> where Self: 'b;
+            type LineStringType<'b> = LineString<'b> where Self: 'b;
+            type PolygonType<'b> = Polygon<'b> where Self: 'b;
+            type MultiPointType<'b> = MultiPoint<'b> where Self: 'b;
+            type MultiLineStringType<'b> = MultiLineString<'b> where Self: 'b;
+            type MultiPolygonType<'b> = MultiPolygon<'b> where Self: 'b;
+            type GeometryCollectionType<'b> = GeometryCollection<'b> where Self: 'b;
+            type RectType<'b> = geo_traits::UnimplementedRect<f64> where Self: 'b;
+            type LineType<'b> = geo_traits::UnimplementedLine<f64> where Self: 'b;
+            type TriangleType<'b> = geo_traits::UnimplementedTriangle<f64> where Self: 'b;
+
+            fn dim(&self) -> geo_traits::Dimensions {
+                self.dimension()
+            }
+
+            fn as_type(
+                &self,
+            ) -> geo_traits::GeometryType<
+                '_,
+                Point,
+                LineString,
+                Polygon,
+                MultiPoint,
+                MultiLineString,
+                MultiPolygon,
+                GeometryCollection,
+                Self::RectType<'_>,
+                Self::TriangleType<'_>,
+                Self::LineType<'_>,
+            > {
+                geo_traits::GeometryType::$geometry_type(self)
+            }
+        }
+
+        impl<'a> GeometryTrait for &'a $geometry_type<'_> {
+            type T = f64;
+            type PointType<'b> = Point<'b> where Self: 'b;
+            type LineStringType<'b> = LineString<'b> where Self: 'b;
+            type PolygonType<'b> = Polygon<'b> where Self: 'b;
+            type MultiPointType<'b> = MultiPoint<'b> where Self: 'b;
+            type MultiLineStringType<'b> = MultiLineString<'b> where Self: 'b;
+            type MultiPolygonType<'b> = MultiPolygon<'b> where Self: 'b;
+            type GeometryCollectionType<'b> = GeometryCollection<'b> where Self: 'b;
+            type RectType<'b> = geo_traits::UnimplementedRect<f64> where Self: 'b;
+            type LineType<'b> = geo_traits::UnimplementedLine<f64> where Self: 'b;
+            type TriangleType<'b> = geo_traits::UnimplementedTriangle<f64> where Self: 'b;
+
+            fn dim(&self) -> geo_traits::Dimensions {
+                self.dimension()
+            }
+
+            fn as_type(
+                &self,
+            ) -> geo_traits::GeometryType<
+                '_,
+                Point,
+                LineString,
+                Polygon,
+                MultiPoint,
+                MultiLineString,
+                MultiPolygon,
+                GeometryCollection,
+                Self::RectType<'_>,
+                Self::TriangleType<'_>,
+                Self::LineType<'_>,
+            > {
+                geo_traits::GeometryType::$geometry_type(self)
+            }
+        }
+    };
+}
+
+impl_specialization!(Point);
+impl_specialization!(LineString);
+impl_specialization!(Polygon);
+impl_specialization!(MultiPoint);
+impl_specialization!(MultiLineString);
+impl_specialization!(MultiPolygon);
+impl_specialization!(GeometryCollection);

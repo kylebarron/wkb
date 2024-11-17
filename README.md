@@ -6,5 +6,4 @@ This is being refactored out of https://github.com/geoarrow/geoarrow-rs in the h
 
 Notes:
 
-- Implement `GeometryTrait` for each scalar type.
 - Implement M and ZM variants.

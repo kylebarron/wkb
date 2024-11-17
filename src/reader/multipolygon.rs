@@ -1,8 +1,7 @@
 use std::io::Cursor;
 
-use byteorder::{BigEndian, LittleEndian, ReadBytesExt};
-
 use crate::reader::polygon::Polygon;
+use crate::reader::util::ReadBytesExt;
 use crate::Endianness;
 use geo_traits::Dimensions;
 use geo_traits::MultiPolygonTrait;
@@ -23,14 +22,7 @@ impl<'a> MultiPolygon<'a> {
     pub(crate) fn new(buf: &'a [u8], byte_order: Endianness, dim: Dimensions) -> Self {
         let mut reader = Cursor::new(buf);
         reader.set_position(HEADER_BYTES);
-        let num_polygons = match byte_order {
-            Endianness::BigEndian => reader.read_u32::<BigEndian>().unwrap().try_into().unwrap(),
-            Endianness::LittleEndian => reader
-                .read_u32::<LittleEndian>()
-                .unwrap()
-                .try_into()
-                .unwrap(),
-        };
+        let num_polygons = reader.read_u32(byte_order).unwrap().try_into().unwrap();
 
         // - 1: byteOrder
         // - 4: wkbType
