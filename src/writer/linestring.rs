@@ -1,8 +1,9 @@
 use crate::common::WKBType;
 use crate::error::WKBResult;
+use crate::writer::coord::write_coord;
 use crate::Endianness;
 use byteorder::{BigEndian, ByteOrder, LittleEndian, WriteBytesExt};
-use geo_traits::{CoordTrait, LineStringTrait};
+use geo_traits::LineStringTrait;
 use std::io::Write;
 
 /// The byte length of a LineString
@@ -42,12 +43,7 @@ fn write_line_string_content<W: Write, B: ByteOrder>(
         .unwrap();
 
     for coord in geom.coords() {
-        writer.write_f64::<B>(coord.x()).unwrap();
-        writer.write_f64::<B>(coord.y()).unwrap();
-
-        if geom.dim().size() == 3 {
-            writer.write_f64::<B>(coord.nth_unchecked(2)).unwrap();
-        }
+        write_coord::<W, B>(writer, &coord)?;
     }
 
     Ok(())

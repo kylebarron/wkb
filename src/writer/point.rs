@@ -1,9 +1,10 @@
 use crate::common::WKBType;
 use crate::error::WKBResult;
+use crate::writer::coord::write_coord;
 use crate::Endianness;
 use byteorder::{BigEndian, ByteOrder, LittleEndian, WriteBytesExt};
 use core::f64;
-use geo_traits::{CoordTrait, PointTrait};
+use geo_traits::PointTrait;
 use std::io::Write;
 
 /// The byte length of a Point
@@ -38,15 +39,7 @@ fn write_point_content<W: Write, B: ByteOrder>(
     writer.write_u32::<LittleEndian>(wkb_type.into())?;
 
     if let Some(coord) = geom.coord() {
-        writer.write_f64::<B>(coord.x())?;
-        writer.write_f64::<B>(coord.y())?;
-
-        if coord.dim().size() >= 3 {
-            writer.write_f64::<B>(coord.nth_unchecked(2))?;
-        }
-        if coord.dim().size() >= 4 {
-            writer.write_f64::<B>(coord.nth_unchecked(3))?;
-        }
+        write_coord::<W, B>(writer, &coord)?;
     } else {
         // Write POINT EMPTY as f64::NAN values
         for _ in 0..geom.dim().size() {
