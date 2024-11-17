@@ -2,7 +2,7 @@ use crate::common::WKBType;
 use crate::error::WKBResult;
 use crate::writer::geometry::{geometry_wkb_size, write_geometry};
 use crate::Endianness;
-use byteorder::{LittleEndian, WriteBytesExt};
+use byteorder::{BigEndian, ByteOrder, LittleEndian, WriteBytesExt};
 use geo_traits::GeometryCollectionTrait;
 use std::io::Write;
 
@@ -23,23 +23,39 @@ pub fn write_geometry_collection<W: Write>(
     geom: &impl GeometryCollectionTrait<T = f64>,
     endianness: Endianness,
 ) -> WKBResult<()> {
-    use geo_traits::Dimensions;
-
     // Byte order
     writer.write_u8(Endianness::LittleEndian.into())?;
 
+    // Content
+    match endianness {
+        Endianness::LittleEndian => {
+            write_geometry_collection_content::<W, LittleEndian>(writer, geom, endianness)
+        }
+        Endianness::BigEndian => {
+            write_geometry_collection_content::<W, BigEndian>(writer, geom, endianness)
+        }
+    }
+}
+
+fn write_geometry_collection_content<W: Write, B: ByteOrder>(
+    writer: &mut W,
+    geom: &impl GeometryCollectionTrait<T = f64>,
+    endianness: Endianness,
+) -> WKBResult<()> {
+    use geo_traits::Dimensions;
+
     match geom.dim() {
         Dimensions::Xy | Dimensions::Unknown(2) => {
-            writer.write_u32::<LittleEndian>(WKBType::GeometryCollection.into())?;
+            writer.write_u32::<B>(WKBType::GeometryCollection.into())?;
         }
         Dimensions::Xyz | Dimensions::Unknown(3) => {
-            writer.write_u32::<LittleEndian>(WKBType::GeometryCollectionZ.into())?;
+            writer.write_u32::<B>(WKBType::GeometryCollectionZ.into())?;
         }
         _ => panic!(),
     }
 
     // numGeometries
-    writer.write_u32::<LittleEndian>(geom.num_geometries().try_into().unwrap())?;
+    writer.write_u32::<B>(geom.num_geometries().try_into().unwrap())?;
 
     for inner_geom in geom.geometries() {
         write_geometry(writer, &inner_geom, endianness)?;

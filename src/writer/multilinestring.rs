@@ -2,7 +2,7 @@ use crate::common::WKBType;
 use crate::error::WKBResult;
 use crate::writer::linestring::{line_string_wkb_size, write_line_string};
 use crate::Endianness;
-use byteorder::{LittleEndian, WriteBytesExt};
+use byteorder::{BigEndian, ByteOrder, LittleEndian, WriteBytesExt};
 use geo_traits::MultiLineStringTrait;
 use std::io::Write;
 
@@ -22,23 +22,39 @@ pub fn write_multi_line_string<W: Write>(
     geom: &impl MultiLineStringTrait<T = f64>,
     endianness: Endianness,
 ) -> WKBResult<()> {
-    use geo_traits::Dimensions;
-
     // Byte order
     writer.write_u8(endianness.into())?;
 
+    // Content
+    match endianness {
+        Endianness::LittleEndian => {
+            write_multi_line_string_content::<W, LittleEndian>(writer, geom, endianness)
+        }
+        Endianness::BigEndian => {
+            write_multi_line_string_content::<W, BigEndian>(writer, geom, endianness)
+        }
+    }
+}
+
+fn write_multi_line_string_content<W: Write, B: ByteOrder>(
+    writer: &mut W,
+    geom: &impl MultiLineStringTrait<T = f64>,
+    endianness: Endianness,
+) -> WKBResult<()> {
+    use geo_traits::Dimensions;
+
     match geom.dim() {
         Dimensions::Xy | Dimensions::Unknown(2) => {
-            writer.write_u32::<LittleEndian>(WKBType::MultiLineString.into())?;
+            writer.write_u32::<B>(WKBType::MultiLineString.into())?;
         }
         Dimensions::Xyz | Dimensions::Unknown(3) => {
-            writer.write_u32::<LittleEndian>(WKBType::MultiLineStringZ.into())?;
+            writer.write_u32::<B>(WKBType::MultiLineStringZ.into())?;
         }
         _ => panic!(),
     }
 
     // numPoints
-    writer.write_u32::<LittleEndian>(geom.num_line_strings().try_into().unwrap())?;
+    writer.write_u32::<B>(geom.num_line_strings().try_into().unwrap())?;
 
     for line_string in geom.line_strings() {
         write_line_string(writer, &line_string, endianness)?;

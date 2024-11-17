@@ -47,7 +47,7 @@ impl WKBType {
         let geometry_type = match byte_order {
             0 => reader.read_u32::<BigEndian>().unwrap(),
             1 => reader.read_u32::<LittleEndian>().unwrap(),
-            _ => panic!("Unexpected byte order."),
+            other => panic!("Unexpected byte order: {}", other),
         };
         Self::try_from_primitive(geometry_type).map_err(|err| WKBError::General(err.to_string()))
     }
