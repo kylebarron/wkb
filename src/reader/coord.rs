@@ -78,7 +78,7 @@ impl<'a> CoordTrait for Coord<'a> {
         self.dim
     }
 
-    fn nth_unchecked(&self, n: usize) -> Self::T {
+    fn nth_or_panic(&self, n: usize) -> Self::T {
         self.get_nth_unchecked(n)
     }
 
