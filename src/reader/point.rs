@@ -21,8 +21,15 @@ impl<'a> Point<'a> {
         // The space of the byte order + geometry type
         let offset = offset + 5;
         let coord = Coord::new(buf, byte_order, offset, dim);
-        let is_empty =
-            (0..coord.dim().size()).all(|coord_dim| coord.nth_unchecked(coord_dim).is_nan());
+        let is_empty = (0..coord.dim().size()).all(|coord_dim| {
+            {
+                // Safety:
+                // We just checked the number of dimensions, and coord_dim is less than
+                // coord.dim().size()
+                unsafe { coord.nth_unchecked(coord_dim) }
+            }
+            .is_nan()
+        });
         Self {
             coord,
             dim,
