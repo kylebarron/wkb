@@ -1,5 +1,6 @@
 use std::io::Cursor;
 
+use crate::common::WKBDimension;
 use crate::reader::point::Point;
 use crate::reader::util::ReadBytesExt;
 use crate::Endianness;
@@ -16,11 +17,11 @@ pub struct MultiPoint<'a> {
 
     /// The number of points in this multi point
     num_points: usize,
-    dim: Dimensions,
+    dim: WKBDimension,
 }
 
 impl<'a> MultiPoint<'a> {
-    pub(crate) fn new(buf: &'a [u8], byte_order: Endianness, dim: Dimensions) -> Self {
+    pub(crate) fn new(buf: &'a [u8], byte_order: Endianness, dim: WKBDimension) -> Self {
         // TODO: assert WKB type?
         let mut reader = Cursor::new(buf);
         // Set reader to after 1-byte byteOrder and 4-byte wkbType
@@ -51,7 +52,7 @@ impl<'a> MultiPoint<'a> {
         1 + 4 + 4 + ((1 + 4 + (self.dim.size() as u64 * 8)) * i)
     }
 
-    pub fn dimension(&self) -> Dimensions {
+    pub fn dimension(&self) -> WKBDimension {
         self.dim
     }
 }
@@ -61,7 +62,7 @@ impl<'a> MultiPointTrait for MultiPoint<'a> {
     type PointType<'b> = Point<'a> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
-        self.dim
+        self.dim.into()
     }
 
     fn num_points(&self) -> usize {
@@ -83,7 +84,7 @@ impl<'a> MultiPointTrait for &'a MultiPoint<'a> {
     type PointType<'b> = Point<'a> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
-        self.dim
+        self.dim.into()
     }
 
     fn num_points(&self) -> usize {

@@ -2,7 +2,7 @@ use std::io::Cursor;
 
 use byteorder::ReadBytesExt;
 
-use crate::common::WKBType;
+use crate::common::{WKBDimension, WKBType};
 use crate::error::WKBResult;
 use crate::reader::{
     GeometryCollection, LineString, MultiLineString, MultiPoint, MultiPolygon, Point, Polygon,
@@ -30,28 +30,24 @@ impl<'a> Wkb<'a> {
         let wkb_type = WKBType::from_buffer(buf)?;
 
         let out = match wkb_type {
-            WKBType::Point(dim) => Wkb::Point(Point::new(buf, byte_order, 0, dim.into())),
-            WKBType::LineString(dim) => {
-                Wkb::LineString(LineString::new(buf, byte_order, 0, dim.into()))
-            }
-            WKBType::Polygon(dim) => Wkb::Polygon(Polygon::new(buf, byte_order, 0, dim.into())),
-            WKBType::MultiPoint(dim) => {
-                Wkb::MultiPoint(MultiPoint::new(buf, byte_order, dim.into()))
-            }
+            WKBType::Point(dim) => Wkb::Point(Point::new(buf, byte_order, 0, dim)),
+            WKBType::LineString(dim) => Wkb::LineString(LineString::new(buf, byte_order, 0, dim)),
+            WKBType::Polygon(dim) => Wkb::Polygon(Polygon::new(buf, byte_order, 0, dim)),
+            WKBType::MultiPoint(dim) => Wkb::MultiPoint(MultiPoint::new(buf, byte_order, dim)),
             WKBType::MultiLineString(dim) => {
-                Wkb::MultiLineString(MultiLineString::new(buf, byte_order, dim.into()))
+                Wkb::MultiLineString(MultiLineString::new(buf, byte_order, dim))
             }
             WKBType::MultiPolygon(dim) => {
-                Wkb::MultiPolygon(MultiPolygon::new(buf, byte_order, dim.into()))
+                Wkb::MultiPolygon(MultiPolygon::new(buf, byte_order, dim))
             }
             WKBType::GeometryCollection(dim) => {
-                Wkb::GeometryCollection(GeometryCollection::try_new(buf, byte_order, dim.into())?)
+                Wkb::GeometryCollection(GeometryCollection::try_new(buf, byte_order, dim)?)
             }
         };
         Ok(out)
     }
 
-    pub fn dimension(&self) -> Dimensions {
+    pub fn dimension(&self) -> WKBDimension {
         use Wkb::*;
         match self {
             Point(g) => g.dimension(),
@@ -92,7 +88,7 @@ impl<'a> GeometryTrait for Wkb<'a> {
     type LineType<'b> = UnimplementedLine<f64> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
-        self.dimension()
+        self.dimension().into()
     }
 
     fn as_type(
@@ -138,7 +134,7 @@ impl<'a> GeometryTrait for &'a Wkb<'a> {
     type LineType<'b> = UnimplementedLine<f64> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
-        self.dimension()
+        self.dimension().into()
     }
 
     fn as_type(
@@ -188,7 +184,7 @@ macro_rules! impl_specialization {
             type TriangleType<'b> = geo_traits::UnimplementedTriangle<f64> where Self: 'b;
 
             fn dim(&self) -> geo_traits::Dimensions {
-                self.dimension()
+                self.dimension().into()
             }
 
             fn as_type(
@@ -224,7 +220,7 @@ macro_rules! impl_specialization {
             type TriangleType<'b> = geo_traits::UnimplementedTriangle<f64> where Self: 'b;
 
             fn dim(&self) -> geo_traits::Dimensions {
-                self.dimension()
+                self.dimension().into()
             }
 
             fn as_type(

@@ -1,5 +1,6 @@
 use std::io::Cursor;
 
+use crate::common::WKBDimension;
 use crate::reader::linearring::WKBLinearRing;
 use crate::reader::util::ReadBytesExt;
 use crate::Endianness;
@@ -14,11 +15,11 @@ const WKB_POLYGON_TYPE: u32 = 3;
 #[derive(Debug, Clone)]
 pub struct Polygon<'a> {
     wkb_linear_rings: Vec<WKBLinearRing<'a>>,
-    dim: Dimensions,
+    dim: WKBDimension,
 }
 
 impl<'a> Polygon<'a> {
-    pub fn new(buf: &'a [u8], byte_order: Endianness, offset: u64, dim: Dimensions) -> Self {
+    pub fn new(buf: &'a [u8], byte_order: Endianness, offset: u64, dim: WKBDimension) -> Self {
         let mut reader = Cursor::new(buf);
         reader.set_position(1 + offset);
 
@@ -62,7 +63,7 @@ impl<'a> Polygon<'a> {
         self.wkb_linear_rings.len() == 0
     }
 
-    pub fn dimension(&self) -> Dimensions {
+    pub fn dimension(&self) -> WKBDimension {
         self.dim
     }
 }
@@ -72,7 +73,7 @@ impl<'a> PolygonTrait for Polygon<'a> {
     type RingType<'b> = WKBLinearRing<'a>where Self: 'b;
 
     fn dim(&self) -> Dimensions {
-        self.dim
+        self.dim.into()
     }
 
     fn num_interiors(&self) -> usize {
@@ -102,7 +103,7 @@ impl<'a> PolygonTrait for &'a Polygon<'a> {
     type RingType<'b> = WKBLinearRing<'a> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
-        self.dim
+        self.dim.into()
     }
 
     fn num_interiors(&self) -> usize {
