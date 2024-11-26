@@ -1,3 +1,4 @@
+use crate::common::WKBDimension;
 use crate::reader::coord::Coord;
 use crate::Endianness;
 use geo_traits::Dimensions;
@@ -12,12 +13,12 @@ use geo_traits::{CoordTrait, PointTrait};
 pub struct Point<'a> {
     /// The coordinate inside this Point
     coord: Coord<'a>,
-    dim: Dimensions,
+    dim: WKBDimension,
     is_empty: bool,
 }
 
 impl<'a> Point<'a> {
-    pub fn new(buf: &'a [u8], byte_order: Endianness, offset: u64, dim: Dimensions) -> Self {
+    pub fn new(buf: &'a [u8], byte_order: Endianness, offset: u64, dim: WKBDimension) -> Self {
         // The space of the byte order + geometry type
         let offset = offset + 5;
         let coord = Coord::new(buf, byte_order, offset, dim);
@@ -48,7 +49,7 @@ impl<'a> Point<'a> {
         1 + 4 + (self.dim.size() as u64 * 8)
     }
 
-    pub fn dimension(&self) -> Dimensions {
+    pub fn dimension(&self) -> WKBDimension {
         self.dim
     }
 }
@@ -58,7 +59,7 @@ impl<'a> PointTrait for Point<'a> {
     type CoordType<'b> = Coord<'a> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
-        self.dim
+        self.dim.into()
     }
 
     fn coord(&self) -> Option<Self::CoordType<'_>> {
@@ -75,7 +76,7 @@ impl<'a> PointTrait for &Point<'a> {
     type CoordType<'b> = Coord<'a> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
-        self.dim
+        self.dim.into()
     }
 
     fn coord(&self) -> Option<Self::CoordType<'_>> {

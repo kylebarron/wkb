@@ -1,5 +1,6 @@
 use std::io::Cursor;
 
+use crate::common::WKBDimension;
 use crate::reader::polygon::Polygon;
 use crate::reader::util::ReadBytesExt;
 use crate::Endianness;
@@ -15,11 +16,11 @@ pub struct MultiPolygon<'a> {
     /// A Polygon object for each of the internal line strings
     wkb_polygons: Vec<Polygon<'a>>,
 
-    dim: Dimensions,
+    dim: WKBDimension,
 }
 
 impl<'a> MultiPolygon<'a> {
-    pub(crate) fn new(buf: &'a [u8], byte_order: Endianness, dim: Dimensions) -> Self {
+    pub(crate) fn new(buf: &'a [u8], byte_order: Endianness, dim: WKBDimension) -> Self {
         let mut reader = Cursor::new(buf);
         reader.set_position(HEADER_BYTES);
         let num_polygons = reader.read_u32(byte_order).unwrap().try_into().unwrap();
@@ -50,7 +51,7 @@ impl<'a> MultiPolygon<'a> {
             .fold(1 + 4 + 4, |acc, x| acc + x.size())
     }
 
-    pub fn dimension(&self) -> Dimensions {
+    pub fn dimension(&self) -> WKBDimension {
         self.dim
     }
 }
@@ -60,7 +61,7 @@ impl<'a> MultiPolygonTrait for MultiPolygon<'a> {
     type PolygonType<'b> = Polygon<'a> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
-        self.dim
+        self.dim.into()
     }
 
     fn num_polygons(&self) -> usize {
@@ -77,7 +78,7 @@ impl<'a> MultiPolygonTrait for &'a MultiPolygon<'a> {
     type PolygonType<'b> = Polygon<'a> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
-        self.dim
+        self.dim.into()
     }
 
     fn num_polygons(&self) -> usize {

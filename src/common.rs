@@ -23,6 +23,14 @@ impl WKBDimension {
             Self::Xyzm => 3000,
         }
     }
+
+    pub(crate) fn size(&self) -> usize {
+        match self {
+            Self::Xy => 2,
+            Self::Xyz | Self::Xym => 3,
+            Self::Xyzm => 4,
+        }
+    }
 }
 
 impl TryFrom<geo_traits::Dimensions> for WKBDimension {

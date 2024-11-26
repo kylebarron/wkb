@@ -1,5 +1,6 @@
 use std::io::Cursor;
 
+use crate::common::WKBDimension;
 use crate::error::WKBResult;
 use crate::reader::geometry::Wkb;
 use crate::reader::util::ReadBytesExt;
@@ -14,11 +15,11 @@ const HEADER_BYTES: u64 = 5;
 pub struct GeometryCollection<'a> {
     /// A WKB object for each of the internal geometries
     geometries: Vec<Wkb<'a>>,
-    dim: Dimensions,
+    dim: WKBDimension,
 }
 
 impl<'a> GeometryCollection<'a> {
-    pub fn try_new(buf: &'a [u8], byte_order: Endianness, dim: Dimensions) -> WKBResult<Self> {
+    pub fn try_new(buf: &'a [u8], byte_order: Endianness, dim: WKBDimension) -> WKBResult<Self> {
         let mut reader = Cursor::new(buf);
         reader.set_position(HEADER_BYTES);
         let num_geometries = reader.read_u32(byte_order).unwrap().try_into().unwrap();
@@ -37,7 +38,7 @@ impl<'a> GeometryCollection<'a> {
         Ok(Self { geometries, dim })
     }
 
-    pub fn dimension(&self) -> Dimensions {
+    pub fn dimension(&self) -> WKBDimension {
         self.dim
     }
 
@@ -56,7 +57,7 @@ impl<'a> GeometryCollectionTrait for GeometryCollection<'a> {
     type GeometryType<'b> = &'b Wkb<'b> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
-        self.dim
+        self.dim.into()
     }
 
     fn num_geometries(&self) -> usize {

@@ -1,4 +1,4 @@
-//! An optimized implementation of reading and writing ISO-flavored WKB-encoded geometries.
+#![doc = include_str!("../README.md")]
 
 mod common;
 pub mod error;

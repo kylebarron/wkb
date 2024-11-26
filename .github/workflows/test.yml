@@ -6,8 +6,8 @@ on:
 
 name: Run tests
 jobs:
-  wkt:
-    name: wkt
+  wkb:
+    name: wkb
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     container:

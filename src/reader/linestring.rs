@@ -1,5 +1,6 @@
 use std::io::Cursor;
 
+use crate::common::WKBDimension;
 use crate::reader::coord::Coord;
 use crate::reader::util::ReadBytesExt;
 use crate::Endianness;
@@ -22,11 +23,11 @@ pub struct LineString<'a> {
     /// This offset will be 0 for a single LineString but it will be non zero for a
     /// LineString contained within a MultiLineString
     offset: u64,
-    dim: Dimensions,
+    dim: WKBDimension,
 }
 
 impl<'a> LineString<'a> {
-    pub fn new(buf: &'a [u8], byte_order: Endianness, offset: u64, dim: Dimensions) -> Self {
+    pub fn new(buf: &'a [u8], byte_order: Endianness, offset: u64, dim: WKBDimension) -> Self {
         let mut reader = Cursor::new(buf);
         reader.set_position(HEADER_BYTES + offset);
         let num_points = reader.read_u32(byte_order).unwrap().try_into().unwrap();
@@ -56,7 +57,7 @@ impl<'a> LineString<'a> {
         self.offset + 1 + 4 + 4 + (self.dim.size() as u64 * 8 * i)
     }
 
-    pub fn dimension(&self) -> Dimensions {
+    pub fn dimension(&self) -> WKBDimension {
         self.dim
     }
 }
@@ -66,7 +67,7 @@ impl<'a> LineStringTrait for LineString<'a> {
     type CoordType<'b> = Coord<'a> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
-        self.dim
+        self.dim.into()
     }
 
     fn num_coords(&self) -> usize {
@@ -88,7 +89,7 @@ impl<'a> LineStringTrait for &'a LineString<'a> {
     type CoordType<'b> = Coord<'a> where Self: 'b;
 
     fn dim(&self) -> Dimensions {
-        self.dim
+        self.dim.into()
     }
 
     fn num_coords(&self) -> usize {
