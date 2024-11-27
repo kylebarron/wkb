@@ -6,7 +6,7 @@ use byteorder::{BigEndian, ByteOrder, LittleEndian, WriteBytesExt};
 use geo_traits::{LineStringTrait, PolygonTrait};
 use std::io::Write;
 
-/// The byte length of a Polygon
+/// The number of bytes this Polygon will take up when encoded as WKB
 pub fn polygon_wkb_size(geom: &impl PolygonTrait<T = f64>) -> usize {
     let mut sum = 1 + 4 + 4;
 

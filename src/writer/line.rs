@@ -30,7 +30,7 @@ impl<'a, G: LineTrait<T = f64>> LineStringTrait for LineWrapper<'a, G> {
     }
 }
 
-/// The byte length of a Line
+/// The number of bytes this Line will take up when encoded as WKB
 pub fn line_wkb_size(geom: &impl LineTrait<T = f64>) -> usize {
     line_string_wkb_size(&LineWrapper(geom))
 }

@@ -6,7 +6,7 @@ use byteorder::{BigEndian, ByteOrder, LittleEndian, WriteBytesExt};
 use geo_traits::GeometryCollectionTrait;
 use std::io::Write;
 
-/// The byte length of a GeometryCollection
+/// The number of bytes this GeometryCollection will take up when encoded as WKB
 pub fn geometry_collection_wkb_size(geom: &impl GeometryCollectionTrait<T = f64>) -> usize {
     let mut sum = 1 + 4 + 4;
 
