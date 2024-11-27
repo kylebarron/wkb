@@ -18,8 +18,8 @@ pub fn geometry_collection_wkb_size(geom: &impl GeometryCollectionTrait<T = f64>
 }
 
 /// Write a GeometryCollection geometry to a Writer encoded as WKB
-pub fn write_geometry_collection<W: Write>(
-    writer: &mut W,
+pub fn write_geometry_collection(
+    writer: &mut impl Write,
     geom: &impl GeometryCollectionTrait<T = f64>,
     endianness: Endianness,
 ) -> WKBResult<()> {
@@ -29,16 +29,16 @@ pub fn write_geometry_collection<W: Write>(
     // Content
     match endianness {
         Endianness::LittleEndian => {
-            write_geometry_collection_content::<W, LittleEndian>(writer, geom, endianness)
+            write_geometry_collection_content::<LittleEndian>(writer, geom, endianness)
         }
         Endianness::BigEndian => {
-            write_geometry_collection_content::<W, BigEndian>(writer, geom, endianness)
+            write_geometry_collection_content::<BigEndian>(writer, geom, endianness)
         }
     }
 }
 
-fn write_geometry_collection_content<W: Write, B: ByteOrder>(
-    writer: &mut W,
+fn write_geometry_collection_content<B: ByteOrder>(
+    writer: &mut impl Write,
     geom: &impl GeometryCollectionTrait<T = f64>,
     endianness: Endianness,
 ) -> WKBResult<()> {

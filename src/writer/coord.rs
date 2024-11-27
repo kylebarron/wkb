@@ -6,8 +6,8 @@ use geo_traits::CoordTrait;
 use crate::error::WKBResult;
 
 /// Write a coordinate to a Writer encoded as WKB
-pub(crate) fn write_coord<W: Write, B: ByteOrder>(
-    writer: &mut W,
+pub(crate) fn write_coord<B: ByteOrder>(
+    writer: &mut impl Write,
     coord: &impl CoordTrait<T = f64>,
 ) -> WKBResult<()> {
     for i in 0..coord.dim().size() {

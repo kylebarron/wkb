@@ -17,8 +17,8 @@ pub fn multi_line_string_wkb_size(geom: &impl MultiLineStringTrait<T = f64>) -> 
 }
 
 /// Write a MultiLineString geometry to a Writer encoded as WKB
-pub fn write_multi_line_string<W: Write>(
-    writer: &mut W,
+pub fn write_multi_line_string(
+    writer: &mut impl Write,
     geom: &impl MultiLineStringTrait<T = f64>,
     endianness: Endianness,
 ) -> WKBResult<()> {
@@ -28,16 +28,16 @@ pub fn write_multi_line_string<W: Write>(
     // Content
     match endianness {
         Endianness::LittleEndian => {
-            write_multi_line_string_content::<W, LittleEndian>(writer, geom, endianness)
+            write_multi_line_string_content::<LittleEndian>(writer, geom, endianness)
         }
         Endianness::BigEndian => {
-            write_multi_line_string_content::<W, BigEndian>(writer, geom, endianness)
+            write_multi_line_string_content::<BigEndian>(writer, geom, endianness)
         }
     }
 }
 
-fn write_multi_line_string_content<W: Write, B: ByteOrder>(
-    writer: &mut W,
+fn write_multi_line_string_content<B: ByteOrder>(
+    writer: &mut impl Write,
     geom: &impl MultiLineStringTrait<T = f64>,
     endianness: Endianness,
 ) -> WKBResult<()> {

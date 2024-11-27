@@ -28,8 +28,8 @@ pub fn geometry_wkb_size(geom: &impl GeometryTrait<T = f64>) -> usize {
 }
 
 /// Write a Geometry to a Writer encoded as WKB
-pub fn write_geometry<W: Write>(
-    writer: &mut W,
+pub fn write_geometry(
+    writer: &mut impl Write,
     geom: &impl GeometryTrait<T = f64>,
     endianness: Endianness,
 ) -> WKBResult<()> {
