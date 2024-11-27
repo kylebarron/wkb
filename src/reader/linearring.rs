@@ -59,6 +59,7 @@ impl<'a> WKBLinearRing<'a> {
     }
 
     /// The offset into this buffer of any given coordinate
+    #[inline]
     pub fn coord_offset(&self, i: u64) -> u64 {
         self.offset + 4 + (self.dim.size() as u64 * 8 * i)
     }
@@ -72,10 +73,12 @@ impl<'a> LineStringTrait for WKBLinearRing<'a> {
         self.dim.into()
     }
 
+    #[inline]
     fn num_coords(&self) -> usize {
         self.num_points
     }
 
+    #[inline]
     unsafe fn coord_unchecked(&self, i: usize) -> Self::CoordType<'_> {
         Coord::new(
             self.buf,
