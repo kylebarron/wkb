@@ -15,8 +15,8 @@ pub fn line_string_wkb_size(geom: &impl LineStringTrait) -> usize {
 }
 
 /// Write a LineString geometry to a Writer encoded as WKB
-pub fn write_line_string<W: Write>(
-    writer: &mut W,
+pub fn write_line_string(
+    writer: &mut impl Write,
     geom: &impl LineStringTrait<T = f64>,
     endianness: Endianness,
 ) -> WKBResult<()> {
@@ -25,13 +25,13 @@ pub fn write_line_string<W: Write>(
 
     // Content
     match endianness {
-        Endianness::LittleEndian => write_line_string_content::<W, LittleEndian>(writer, geom),
-        Endianness::BigEndian => write_line_string_content::<W, BigEndian>(writer, geom),
+        Endianness::LittleEndian => write_line_string_content::<LittleEndian>(writer, geom),
+        Endianness::BigEndian => write_line_string_content::<BigEndian>(writer, geom),
     }
 }
 
-fn write_line_string_content<W: Write, B: ByteOrder>(
-    writer: &mut W,
+fn write_line_string_content<B: ByteOrder>(
+    writer: &mut impl Write,
     geom: &impl LineStringTrait<T = f64>,
 ) -> WKBResult<()> {
     let wkb_type = WKBType::LineString(geom.dim().try_into()?);
@@ -43,7 +43,7 @@ fn write_line_string_content<W: Write, B: ByteOrder>(
         .unwrap();
 
     for coord in geom.coords() {
-        write_coord::<W, B>(writer, &coord)?;
+        write_coord::<B>(writer, &coord)?;
     }
 
     Ok(())

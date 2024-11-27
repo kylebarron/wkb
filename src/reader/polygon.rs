@@ -7,8 +7,6 @@ use crate::Endianness;
 use geo_traits::Dimensions;
 use geo_traits::PolygonTrait;
 
-const WKB_POLYGON_TYPE: u32 = 3;
-
 /// A WKB Polygon
 ///
 /// This has been preprocessed, so access to any internal coordinate is `O(1)`.
@@ -19,12 +17,14 @@ pub struct Polygon<'a> {
 }
 
 impl<'a> Polygon<'a> {
-    pub fn new(buf: &'a [u8], byte_order: Endianness, offset: u64, dim: WKBDimension) -> Self {
+    pub(crate) fn new(
+        buf: &'a [u8],
+        byte_order: Endianness,
+        offset: u64,
+        dim: WKBDimension,
+    ) -> Self {
         let mut reader = Cursor::new(buf);
         reader.set_position(1 + offset);
-
-        // Assert that this is indeed a 2D Polygon
-        assert_eq!(WKB_POLYGON_TYPE, reader.read_u32(byte_order).unwrap());
 
         let num_rings = reader.read_u32(byte_order).unwrap().try_into().unwrap();
 
@@ -59,11 +59,7 @@ impl<'a> Polygon<'a> {
             .fold(1 + 4 + 4, |acc, ring| acc + ring.size())
     }
 
-    pub fn is_empty(&self) -> bool {
-        self.wkb_linear_rings.len() == 0
-    }
-
-    pub fn dimension(&self) -> WKBDimension {
+    pub(crate) fn dimension(&self) -> WKBDimension {
         self.dim
     }
 }

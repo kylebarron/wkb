@@ -24,8 +24,8 @@ pub fn polygon_wkb_size(geom: &impl PolygonTrait) -> usize {
 }
 
 /// Write a Polygon geometry to a Writer encoded as WKB
-pub fn write_polygon<W: Write>(
-    writer: &mut W,
+pub fn write_polygon(
+    writer: &mut impl Write,
     geom: &impl PolygonTrait<T = f64>,
     endianness: Endianness,
 ) -> WKBResult<()> {
@@ -34,13 +34,13 @@ pub fn write_polygon<W: Write>(
 
     // Content
     match endianness {
-        Endianness::LittleEndian => write_polygon_content::<W, LittleEndian>(writer, geom),
-        Endianness::BigEndian => write_polygon_content::<W, BigEndian>(writer, geom),
+        Endianness::LittleEndian => write_polygon_content::<LittleEndian>(writer, geom),
+        Endianness::BigEndian => write_polygon_content::<BigEndian>(writer, geom),
     }
 }
 
-fn write_polygon_content<W: Write, B: ByteOrder>(
-    writer: &mut W,
+fn write_polygon_content<B: ByteOrder>(
+    writer: &mut impl Write,
     geom: &impl PolygonTrait<T = f64>,
 ) -> WKBResult<()> {
     let wkb_type = WKBType::Polygon(geom.dim().try_into()?);
@@ -58,7 +58,7 @@ fn write_polygon_content<W: Write, B: ByteOrder>(
         writer.write_u32::<B>(ext_ring.num_coords().try_into().unwrap())?;
 
         for coord in ext_ring.coords() {
-            write_coord::<W, B>(writer, &coord)?;
+            write_coord::<B>(writer, &coord)?;
         }
     }
 
@@ -66,7 +66,7 @@ fn write_polygon_content<W: Write, B: ByteOrder>(
         writer.write_u32::<B>(int_ring.num_coords().try_into().unwrap())?;
 
         for coord in int_ring.coords() {
-            write_coord::<W, B>(writer, &coord)?;
+            write_coord::<B>(writer, &coord)?;
         }
     }
 

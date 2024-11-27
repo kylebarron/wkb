@@ -17,8 +17,8 @@ pub fn multi_polygon_wkb_size(geom: &impl MultiPolygonTrait) -> usize {
 }
 
 /// Write a MultiPolygon geometry to a Writer encoded as WKB
-pub fn write_multi_polygon<W: Write>(
-    writer: &mut W,
+pub fn write_multi_polygon(
+    writer: &mut impl Write,
     geom: &impl MultiPolygonTrait<T = f64>,
     endianness: Endianness,
 ) -> WKBResult<()> {
@@ -28,16 +28,14 @@ pub fn write_multi_polygon<W: Write>(
     // Content
     match endianness {
         Endianness::LittleEndian => {
-            write_multi_polygon_content::<W, LittleEndian>(writer, geom, endianness)
+            write_multi_polygon_content::<LittleEndian>(writer, geom, endianness)
         }
-        Endianness::BigEndian => {
-            write_multi_polygon_content::<W, BigEndian>(writer, geom, endianness)
-        }
+        Endianness::BigEndian => write_multi_polygon_content::<BigEndian>(writer, geom, endianness),
     }
 }
 
-fn write_multi_polygon_content<W: Write, B: ByteOrder>(
-    writer: &mut W,
+fn write_multi_polygon_content<B: ByteOrder>(
+    writer: &mut impl Write,
     geom: &impl MultiPolygonTrait<T = f64>,
     endianness: Endianness,
 ) -> WKBResult<()> {
