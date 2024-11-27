@@ -51,6 +51,20 @@ fn bench_parse(c: &mut criterion::Criterion) {
             let _geo_types_geom = wkb_geom.to_geometry();
         });
     });
+
+    c.bench_function("encode small", |bencher| {
+        bencher.iter(|| {
+            let mut buf = Vec::new();
+            wkb::writer::write_geometry(&mut buf, &small, Default::default()).unwrap();
+        });
+    });
+
+    c.bench_function("encode big", |bencher| {
+        bencher.iter(|| {
+            let mut buf = Vec::new();
+            wkb::writer::write_geometry(&mut buf, &big, Default::default()).unwrap();
+        });
+    });
 }
 
 criterion_group!(benches, bench_parse);
