@@ -8,6 +8,7 @@ mod multipoint;
 mod multipolygon;
 mod point;
 mod polygon;
+mod rect;
 mod triangle;
 
 pub use geometry::{geometry_wkb_size, write_geometry};
@@ -19,4 +20,5 @@ pub use multipoint::{multi_point_wkb_size, write_multi_point};
 pub use multipolygon::{multi_polygon_wkb_size, write_multi_polygon};
 pub use point::{point_wkb_size, write_point};
 pub use polygon::{polygon_wkb_size, write_polygon};
+pub use rect::{rect_wkb_size, write_rect};
 pub use triangle::{triangle_wkb_size, write_triangle};
