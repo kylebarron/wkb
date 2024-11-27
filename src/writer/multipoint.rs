@@ -7,7 +7,7 @@ use geo_traits::MultiPointTrait;
 use std::io::Write;
 
 /// The byte length of a MultiPoint
-pub fn multi_point_wkb_size(geom: &impl MultiPointTrait) -> usize {
+pub fn multi_point_wkb_size(geom: &impl MultiPointTrait<T = f64>) -> usize {
     1 + 4 + 4 + (geom.num_points() * point_wkb_size(geom.dim()))
 }
 

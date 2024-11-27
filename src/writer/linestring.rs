@@ -7,7 +7,7 @@ use geo_traits::LineStringTrait;
 use std::io::Write;
 
 /// The byte length of a LineString
-pub fn line_string_wkb_size(geom: &impl LineStringTrait) -> usize {
+pub fn line_string_wkb_size(geom: &impl LineStringTrait<T = f64>) -> usize {
     let header = 1 + 4 + 4;
     let each_coord = geom.dim().size() * 8;
     let all_coords = geom.num_coords() * each_coord;

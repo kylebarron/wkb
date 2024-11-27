@@ -7,7 +7,7 @@ use geo_traits::{LineStringTrait, PolygonTrait};
 use std::io::Write;
 
 /// The byte length of a Polygon
-pub fn polygon_wkb_size(geom: &impl PolygonTrait) -> usize {
+pub fn polygon_wkb_size(geom: &impl PolygonTrait<T = f64>) -> usize {
     let mut sum = 1 + 4 + 4;
 
     let each_coord = geom.dim().size() * 8;

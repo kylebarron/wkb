@@ -7,7 +7,7 @@ use geo_traits::MultiLineStringTrait;
 use std::io::Write;
 
 /// The byte length of a MultiLineString
-pub fn multi_line_string_wkb_size(geom: &impl MultiLineStringTrait) -> usize {
+pub fn multi_line_string_wkb_size(geom: &impl MultiLineStringTrait<T = f64>) -> usize {
     let mut sum = 1 + 4 + 4;
     for line_string in geom.line_strings() {
         sum += line_string_wkb_size(&line_string);
