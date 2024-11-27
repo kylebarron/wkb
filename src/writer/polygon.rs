@@ -44,7 +44,7 @@ fn write_polygon_content<B: ByteOrder>(
     geom: &impl PolygonTrait<T = f64>,
 ) -> WKBResult<()> {
     let wkb_type = WKBType::Polygon(geom.dim().try_into()?);
-    writer.write_u32::<LittleEndian>(wkb_type.into())?;
+    writer.write_u32::<B>(wkb_type.into())?;
 
     // numRings
     let num_rings = if geom.exterior().is_some() {

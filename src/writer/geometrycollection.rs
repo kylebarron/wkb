@@ -24,7 +24,7 @@ pub fn write_geometry_collection(
     endianness: Endianness,
 ) -> WKBResult<()> {
     // Byte order
-    writer.write_u8(Endianness::LittleEndian.into())?;
+    writer.write_u8(endianness.into())?;
 
     // Content
     match endianness {

@@ -115,7 +115,7 @@ impl WKBType {
             3 => WKBDimension::Xyz,
             _ => {
                 return Err(WKBError::General(format!(
-                    "WKB type value out of range. Got: {}",
+                    "WKB dimension value out of range. Got: {}",
                     value
                 )))
             }

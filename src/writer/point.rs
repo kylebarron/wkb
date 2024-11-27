@@ -36,7 +36,7 @@ fn write_point_content<B: ByteOrder>(
     geom: &impl PointTrait<T = f64>,
 ) -> WKBResult<()> {
     let wkb_type = WKBType::Point(geom.dim().try_into()?);
-    writer.write_u32::<LittleEndian>(wkb_type.into())?;
+    writer.write_u32::<B>(wkb_type.into())?;
 
     if let Some(coord) = geom.coord() {
         write_coord::<B>(writer, &coord)?;
