@@ -35,7 +35,7 @@ fn write_line_string_content<B: ByteOrder>(
     geom: &impl LineStringTrait<T = f64>,
 ) -> WKBResult<()> {
     let wkb_type = WKBType::LineString(geom.dim().try_into()?);
-    writer.write_u32::<LittleEndian>(wkb_type.into())?;
+    writer.write_u32::<B>(wkb_type.into())?;
 
     // numPoints
     writer
