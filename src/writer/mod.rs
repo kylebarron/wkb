@@ -1,3 +1,5 @@
+//! Write geometries to Well-Known Binary encoding.
+
 mod coord;
 mod geometry;
 mod geometrycollection;

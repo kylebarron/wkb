@@ -10,7 +10,7 @@ use crate::Endianness;
 use geo_traits::{GeometryTrait, GeometryType};
 use std::io::Write;
 
-/// The byte length of a Geometry
+/// The number of bytes this geometry will take up when encoded as WKB
 pub fn geometry_wkb_size(geom: &impl GeometryTrait<T = f64>) -> usize {
     use GeometryType::*;
     match geom.as_type() {

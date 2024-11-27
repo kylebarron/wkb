@@ -52,7 +52,7 @@ impl<'a, G: TriangleTrait<T = f64>> PolygonTrait for TriangleWrapper<'a, G> {
     }
 }
 
-/// The byte length of a Triangle
+/// The number of bytes this Triangle will take up when encoded as WKB
 pub fn triangle_wkb_size(geom: &impl TriangleTrait<T = f64>) -> usize {
     polygon_wkb_size(&TriangleWrapper(geom))
 }

@@ -101,7 +101,7 @@ impl<'a, G: RectTrait<T = f64>> PolygonTrait for RectWrapper<'a, G> {
     }
 }
 
-/// The byte length of a Rect
+/// The number of bytes this Rect will take up when encoded as WKB
 pub fn rect_wkb_size(geom: &impl RectTrait<T = f64>) -> usize {
     polygon_wkb_size(&RectWrapper(geom))
 }
