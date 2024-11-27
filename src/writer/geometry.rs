@@ -1,16 +1,17 @@
 use crate::error::WKBResult;
 use crate::writer::{
-    geometry_collection_wkb_size, line_string_wkb_size, multi_line_string_wkb_size,
+    geometry_collection_wkb_size, line_string_wkb_size, line_wkb_size, multi_line_string_wkb_size,
     multi_point_wkb_size, multi_polygon_wkb_size, point_wkb_size, polygon_wkb_size,
-    write_geometry_collection, write_line_string, write_multi_line_string, write_multi_point,
-    write_multi_polygon, write_point, write_polygon,
+    triangle_wkb_size, write_geometry_collection, write_line, write_line_string,
+    write_multi_line_string, write_multi_point, write_multi_polygon, write_point, write_polygon,
+    write_triangle,
 };
 use crate::Endianness;
 use geo_traits::{GeometryTrait, GeometryType};
 use std::io::Write;
 
 /// The byte length of a Geometry
-pub fn geometry_wkb_size(geom: &impl GeometryTrait) -> usize {
+pub fn geometry_wkb_size(geom: &impl GeometryTrait<T = f64>) -> usize {
     use GeometryType::*;
     match geom.as_type() {
         Point(_) => point_wkb_size(geom.dim()),
@@ -21,8 +22,8 @@ pub fn geometry_wkb_size(geom: &impl GeometryTrait) -> usize {
         MultiPolygon(mp) => multi_polygon_wkb_size(mp),
         GeometryCollection(gc) => geometry_collection_wkb_size(gc),
         Rect(_) => todo!(),
-        Triangle(_) => todo!(),
-        Line(_) => todo!(),
+        Triangle(tri) => triangle_wkb_size(tri),
+        Line(line) => line_wkb_size(line),
     }
 }
 
@@ -42,7 +43,7 @@ pub fn write_geometry<W: Write>(
         MultiPolygon(mp) => write_multi_polygon(writer, mp, endianness),
         GeometryCollection(gc) => write_geometry_collection(writer, gc, endianness),
         Rect(_) => todo!(),
-        Triangle(_) => todo!(),
-        Line(_) => todo!(),
+        Triangle(tri) => write_triangle(writer, tri, endianness),
+        Line(line) => write_line(writer, line, endianness),
     }
 }

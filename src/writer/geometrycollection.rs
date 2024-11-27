@@ -7,7 +7,7 @@ use geo_traits::GeometryCollectionTrait;
 use std::io::Write;
 
 /// The byte length of a GeometryCollection
-pub fn geometry_collection_wkb_size(geom: &impl GeometryCollectionTrait) -> usize {
+pub fn geometry_collection_wkb_size(geom: &impl GeometryCollectionTrait<T = f64>) -> usize {
     let mut sum = 1 + 4 + 4;
 
     for inner_geom in geom.geometries() {
