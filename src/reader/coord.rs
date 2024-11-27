@@ -49,18 +49,21 @@ impl<'a> Coord<'a> {
         }
     }
 
+    #[inline]
     fn get_x(&self) -> f64 {
         let mut reader = Cursor::new(self.buf);
         reader.set_position(self.offset);
         reader.read_f64(self.byte_order).unwrap()
     }
 
+    #[inline]
     fn get_y(&self) -> f64 {
         let mut reader = Cursor::new(self.buf);
         reader.set_position(self.offset + F64_WIDTH);
         reader.read_f64(self.byte_order).unwrap()
     }
 
+    #[inline]
     fn get_nth_unchecked(&self, n: usize) -> f64 {
         debug_assert!(n < self.dim.size());
         let mut reader = Cursor::new(self.buf);
@@ -84,14 +87,17 @@ impl<'a> CoordTrait for Coord<'a> {
         self.dim.into()
     }
 
+    #[inline]
     fn nth_or_panic(&self, n: usize) -> Self::T {
         self.get_nth_unchecked(n)
     }
 
+    #[inline]
     fn x(&self) -> Self::T {
         self.get_x()
     }
 
+    #[inline]
     fn y(&self) -> Self::T {
         self.get_y()
     }

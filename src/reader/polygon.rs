@@ -57,10 +57,6 @@ impl<'a> Polygon<'a> {
             .fold(1 + 4 + 4, |acc, ring| acc + ring.size())
     }
 
-    pub fn is_empty(&self) -> bool {
-        self.wkb_linear_rings.len() == 0
-    }
-
     pub fn dimension(&self) -> WKBDimension {
         self.dim
     }
