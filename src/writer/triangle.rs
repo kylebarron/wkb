@@ -35,7 +35,7 @@ impl<'a, G: TriangleTrait<T = f64>> LineStringTrait for &'a TriangleWrapper<'a, 
     }
 }
 
-impl<'a, G: TriangleTrait<T = f64>> PolygonTrait for TriangleWrapper<'a, G> {
+impl<G: TriangleTrait<T = f64>> PolygonTrait for TriangleWrapper<'_, G> {
     type T = f64;
     type RingType<'b>
         = &'b TriangleWrapper<'b, G>

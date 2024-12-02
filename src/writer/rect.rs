@@ -84,7 +84,7 @@ impl<'a, G: RectTrait<T = f64>> LineStringTrait for &'a RectWrapper<'a, G> {
     }
 }
 
-impl<'a, G: RectTrait<T = f64>> PolygonTrait for RectWrapper<'a, G> {
+impl<G: RectTrait<T = f64>> PolygonTrait for RectWrapper<'_, G> {
     type T = f64;
     type RingType<'b>
         = &'b RectWrapper<'b, G>

@@ -52,7 +52,7 @@ impl<'a> GeometryCollection<'a> {
     }
 }
 
-impl<'a> GeometryCollectionTrait for GeometryCollection<'a> {
+impl GeometryCollectionTrait for GeometryCollection<'_> {
     type T = f64;
     type GeometryType<'b>
         = &'b Wkb<'b>
