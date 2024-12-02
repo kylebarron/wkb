@@ -1,14 +1,16 @@
 # `wkb`
 
-[![Crate][crates-badge]][crates-url]
-[![API Documentation][docs-badge]][docs-url]
+# [![Crate][crates-badge]][crates-url]
+# [![API Documentation][docs-badge]][docs-url]
 
-[crates-badge]: https://img.shields.io/crates/v/wkb.svg
-[crates-url]: https://crates.io/crates/wkb
-[docs-badge]: https://docs.rs/wkb/badge.svg
-[docs-url]: https://docs.rs/wkb
+# [crates-badge]: https://img.shields.io/crates/v/wkb.svg
+# [crates-url]: https://crates.io/crates/wkb
+# [docs-badge]: https://docs.rs/wkb/badge.svg
+# [docs-url]: https://docs.rs/wkb
 
 A fast, freely-licensed implementation of reading and writing the [Well-Known Binary][wkb] encoding of vector geometries.
+
+This is not yet published to `crates.io`, pending a potential transfer of the `wkb` name from [a previous wkb crate](https://crates.io/crates/wkb/0.7.1).
 
 ## Features
 
