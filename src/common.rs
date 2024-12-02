@@ -5,6 +5,13 @@ use num_enum::{IntoPrimitive, TryFromPrimitive};
 
 use crate::error::{WKBError, WKBResult};
 
+/// Bit flag for EWKB Geometry with a z coordinate
+const EWKB_FLAG_Z: u32 = 0x80000000;
+/// Bit flag for EWKB Geometry with an m coordinate
+const EWKB_FLAG_M: u32 = 0x40000000;
+/// Bit flag for EWKB Geometry with an embedded SRID
+const EWKB_FLAG_SRID: u32 = 0x20000000;
+
 /// Supported WKB dimensions
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum WKBDimension {
@@ -103,24 +110,35 @@ impl WKBType {
         Self::try_from_u32(geometry_type)
     }
 
-    pub fn try_from_u32(value: u32) -> WKBResult<Self> {
+    pub fn try_from_u32(code: u32) -> WKBResult<Self> {
+        let geometry_type = code & 0x7;
+
+        let mut dim = WKBDimension::Xy;
+
+        // For ISO WKB:
         // Values 1, 2, 3 are 2D,
         // 1001, 1002, 1003 are XYZ,
         // 2001 etc are XYM,
         // 3001 etc are XYZM
-        let dim = match value / 1000 {
-            0 => WKBDimension::Xy,
-            1 => WKBDimension::Xyz,
-            2 => WKBDimension::Xym,
-            3 => WKBDimension::Xyzm,
-            _ => {
-                return Err(WKBError::General(format!(
-                    "WKB dimension value out of range. Got: {}",
-                    value
-                )))
-            }
+        match code / 1000 {
+            1 => dim = WKBDimension::Xyz,
+            2 => dim = WKBDimension::Xym,
+            3 => dim = WKBDimension::Xyzm,
+            _ => (),
         };
-        let typ = match value % 1000 {
+
+        let is_ewkb_z = code & EWKB_FLAG_Z == EWKB_FLAG_Z;
+        let is_ewkb_m = code & EWKB_FLAG_M == EWKB_FLAG_M;
+        // let has_ewkb_srid = code & EWKB_FLAG_SRID == EWKB_FLAG_SRID;
+
+        match (is_ewkb_z, is_ewkb_m) {
+            (true, true) => dim = WKBDimension::Xyzm,
+            (true, false) => dim = WKBDimension::Xyz,
+            (false, true) => dim = WKBDimension::Xym,
+            _ => (),
+        }
+
+        let typ = match geometry_type {
             1 => WKBType::Point(dim),
             2 => WKBType::LineString(dim),
             3 => WKBType::Polygon(dim),
@@ -130,8 +148,8 @@ impl WKBType {
             7 => WKBType::GeometryCollection(dim),
             _ => {
                 return Err(WKBError::General(format!(
-                    "WKB type value out of range. Got: {}",
-                    value
+                    "WKB type code out of range. Got: {}",
+                    code
                 )))
             }
         };
