@@ -40,7 +40,11 @@ struct RectWrapper<'a, G: RectTrait<T = f64>>(&'a G);
 
 impl<'a, G: RectTrait<T = f64>> LineStringTrait for &'a RectWrapper<'a, G> {
     type T = f64;
-    type CoordType<'b> = Coord2D where G: 'b, Self: 'b;
+    type CoordType<'b>
+        = Coord2D
+    where
+        G: 'b,
+        Self: 'b;
 
     fn dim(&self) -> geo_traits::Dimensions {
         self.0.dim()
@@ -82,7 +86,11 @@ impl<'a, G: RectTrait<T = f64>> LineStringTrait for &'a RectWrapper<'a, G> {
 
 impl<'a, G: RectTrait<T = f64>> PolygonTrait for RectWrapper<'a, G> {
     type T = f64;
-    type RingType<'b> = &'b RectWrapper<'b, G> where G: 'b, Self: 'b;
+    type RingType<'b>
+        = &'b RectWrapper<'b, G>
+    where
+        G: 'b,
+        Self: 'b;
 
     fn dim(&self) -> geo_traits::Dimensions {
         self.0.dim()

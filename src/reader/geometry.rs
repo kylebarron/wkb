@@ -76,16 +76,46 @@ impl<'a> Wkb<'a> {
 
 impl<'a> GeometryTrait for Wkb<'a> {
     type T = f64;
-    type PointType<'b> = Point<'a> where Self: 'b;
-    type LineStringType<'b> = LineString<'a> where Self: 'b;
-    type PolygonType<'b> = Polygon<'a> where Self: 'b;
-    type MultiPointType<'b> = MultiPoint<'a> where Self: 'b;
-    type MultiLineStringType<'b> = MultiLineString<'a> where Self: 'b;
-    type MultiPolygonType<'b> = MultiPolygon<'a> where Self: 'b;
-    type GeometryCollectionType<'b> = GeometryCollection<'a> where Self: 'b;
-    type RectType<'b> = UnimplementedRect<f64> where Self: 'b;
-    type TriangleType<'b> = UnimplementedTriangle<f64> where Self: 'b;
-    type LineType<'b> = UnimplementedLine<f64> where Self: 'b;
+    type PointType<'b>
+        = Point<'a>
+    where
+        Self: 'b;
+    type LineStringType<'b>
+        = LineString<'a>
+    where
+        Self: 'b;
+    type PolygonType<'b>
+        = Polygon<'a>
+    where
+        Self: 'b;
+    type MultiPointType<'b>
+        = MultiPoint<'a>
+    where
+        Self: 'b;
+    type MultiLineStringType<'b>
+        = MultiLineString<'a>
+    where
+        Self: 'b;
+    type MultiPolygonType<'b>
+        = MultiPolygon<'a>
+    where
+        Self: 'b;
+    type GeometryCollectionType<'b>
+        = GeometryCollection<'a>
+    where
+        Self: 'b;
+    type RectType<'b>
+        = UnimplementedRect<f64>
+    where
+        Self: 'b;
+    type TriangleType<'b>
+        = UnimplementedTriangle<f64>
+    where
+        Self: 'b;
+    type LineType<'b>
+        = UnimplementedLine<f64>
+    where
+        Self: 'b;
 
     fn dim(&self) -> Dimensions {
         self.dimension().into()
@@ -122,16 +152,46 @@ impl<'a> GeometryTrait for Wkb<'a> {
 
 impl<'a> GeometryTrait for &'a Wkb<'a> {
     type T = f64;
-    type PointType<'b> = Point<'a> where Self: 'b;
-    type LineStringType<'b> = LineString<'a> where Self: 'b;
-    type PolygonType<'b> = Polygon<'a> where Self: 'b;
-    type MultiPointType<'b> = MultiPoint<'a> where Self: 'b;
-    type MultiLineStringType<'b> = MultiLineString<'a> where Self: 'b;
-    type MultiPolygonType<'b> = MultiPolygon<'a> where Self: 'b;
-    type GeometryCollectionType<'b> = GeometryCollection<'a> where Self: 'b;
-    type RectType<'b> = UnimplementedRect<f64> where Self: 'b;
-    type TriangleType<'b> = UnimplementedTriangle<f64> where Self: 'b;
-    type LineType<'b> = UnimplementedLine<f64> where Self: 'b;
+    type PointType<'b>
+        = Point<'a>
+    where
+        Self: 'b;
+    type LineStringType<'b>
+        = LineString<'a>
+    where
+        Self: 'b;
+    type PolygonType<'b>
+        = Polygon<'a>
+    where
+        Self: 'b;
+    type MultiPointType<'b>
+        = MultiPoint<'a>
+    where
+        Self: 'b;
+    type MultiLineStringType<'b>
+        = MultiLineString<'a>
+    where
+        Self: 'b;
+    type MultiPolygonType<'b>
+        = MultiPolygon<'a>
+    where
+        Self: 'b;
+    type GeometryCollectionType<'b>
+        = GeometryCollection<'a>
+    where
+        Self: 'b;
+    type RectType<'b>
+        = UnimplementedRect<f64>
+    where
+        Self: 'b;
+    type TriangleType<'b>
+        = UnimplementedTriangle<f64>
+    where
+        Self: 'b;
+    type LineType<'b>
+        = UnimplementedLine<f64>
+    where
+        Self: 'b;
 
     fn dim(&self) -> Dimensions {
         self.dimension().into()
@@ -172,16 +232,46 @@ macro_rules! impl_specialization {
     ($geometry_type:ident) => {
         impl GeometryTrait for $geometry_type<'_> {
             type T = f64;
-            type PointType<'b> = Point<'b> where Self: 'b;
-            type LineStringType<'b> = LineString<'b> where Self: 'b;
-            type PolygonType<'b> = Polygon<'b> where Self: 'b;
-            type MultiPointType<'b> = MultiPoint<'b> where Self: 'b;
-            type MultiLineStringType<'b> = MultiLineString<'b> where Self: 'b;
-            type MultiPolygonType<'b> = MultiPolygon<'b> where Self: 'b;
-            type GeometryCollectionType<'b> = GeometryCollection<'b> where Self: 'b;
-            type RectType<'b> = geo_traits::UnimplementedRect<f64> where Self: 'b;
-            type LineType<'b> = geo_traits::UnimplementedLine<f64> where Self: 'b;
-            type TriangleType<'b> = geo_traits::UnimplementedTriangle<f64> where Self: 'b;
+            type PointType<'b>
+                = Point<'b>
+            where
+                Self: 'b;
+            type LineStringType<'b>
+                = LineString<'b>
+            where
+                Self: 'b;
+            type PolygonType<'b>
+                = Polygon<'b>
+            where
+                Self: 'b;
+            type MultiPointType<'b>
+                = MultiPoint<'b>
+            where
+                Self: 'b;
+            type MultiLineStringType<'b>
+                = MultiLineString<'b>
+            where
+                Self: 'b;
+            type MultiPolygonType<'b>
+                = MultiPolygon<'b>
+            where
+                Self: 'b;
+            type GeometryCollectionType<'b>
+                = GeometryCollection<'b>
+            where
+                Self: 'b;
+            type RectType<'b>
+                = geo_traits::UnimplementedRect<f64>
+            where
+                Self: 'b;
+            type LineType<'b>
+                = geo_traits::UnimplementedLine<f64>
+            where
+                Self: 'b;
+            type TriangleType<'b>
+                = geo_traits::UnimplementedTriangle<f64>
+            where
+                Self: 'b;
 
             fn dim(&self) -> geo_traits::Dimensions {
                 self.dimension().into()
@@ -208,16 +298,46 @@ macro_rules! impl_specialization {
 
         impl<'a> GeometryTrait for &'a $geometry_type<'_> {
             type T = f64;
-            type PointType<'b> = Point<'b> where Self: 'b;
-            type LineStringType<'b> = LineString<'b> where Self: 'b;
-            type PolygonType<'b> = Polygon<'b> where Self: 'b;
-            type MultiPointType<'b> = MultiPoint<'b> where Self: 'b;
-            type MultiLineStringType<'b> = MultiLineString<'b> where Self: 'b;
-            type MultiPolygonType<'b> = MultiPolygon<'b> where Self: 'b;
-            type GeometryCollectionType<'b> = GeometryCollection<'b> where Self: 'b;
-            type RectType<'b> = geo_traits::UnimplementedRect<f64> where Self: 'b;
-            type LineType<'b> = geo_traits::UnimplementedLine<f64> where Self: 'b;
-            type TriangleType<'b> = geo_traits::UnimplementedTriangle<f64> where Self: 'b;
+            type PointType<'b>
+                = Point<'b>
+            where
+                Self: 'b;
+            type LineStringType<'b>
+                = LineString<'b>
+            where
+                Self: 'b;
+            type PolygonType<'b>
+                = Polygon<'b>
+            where
+                Self: 'b;
+            type MultiPointType<'b>
+                = MultiPoint<'b>
+            where
+                Self: 'b;
+            type MultiLineStringType<'b>
+                = MultiLineString<'b>
+            where
+                Self: 'b;
+            type MultiPolygonType<'b>
+                = MultiPolygon<'b>
+            where
+                Self: 'b;
+            type GeometryCollectionType<'b>
+                = GeometryCollection<'b>
+            where
+                Self: 'b;
+            type RectType<'b>
+                = geo_traits::UnimplementedRect<f64>
+            where
+                Self: 'b;
+            type LineType<'b>
+                = geo_traits::UnimplementedLine<f64>
+            where
+                Self: 'b;
+            type TriangleType<'b>
+                = geo_traits::UnimplementedTriangle<f64>
+            where
+                Self: 'b;
 
             fn dim(&self) -> geo_traits::Dimensions {
                 self.dimension().into()

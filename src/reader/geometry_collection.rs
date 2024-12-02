@@ -54,7 +54,10 @@ impl<'a> GeometryCollection<'a> {
 
 impl<'a> GeometryCollectionTrait for GeometryCollection<'a> {
     type T = f64;
-    type GeometryType<'b> = &'b Wkb<'b> where Self: 'b;
+    type GeometryType<'b>
+        = &'b Wkb<'b>
+    where
+        Self: 'b;
 
     fn dim(&self) -> Dimensions {
         self.dim.into()
