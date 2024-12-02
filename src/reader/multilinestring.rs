@@ -62,7 +62,10 @@ impl<'a> MultiLineString<'a> {
 
 impl<'a> MultiLineStringTrait for MultiLineString<'a> {
     type T = f64;
-    type LineStringType<'b> = LineString<'a> where Self: 'b;
+    type LineStringType<'b>
+        = LineString<'a>
+    where
+        Self: 'b;
 
     fn dim(&self) -> Dimensions {
         self.dim.into()
@@ -79,7 +82,10 @@ impl<'a> MultiLineStringTrait for MultiLineString<'a> {
 
 impl<'a> MultiLineStringTrait for &'a MultiLineString<'a> {
     type T = f64;
-    type LineStringType<'b> = LineString<'a> where Self: 'b;
+    type LineStringType<'b>
+        = LineString<'a>
+    where
+        Self: 'b;
 
     fn dim(&self) -> Dimensions {
         self.dim.into()

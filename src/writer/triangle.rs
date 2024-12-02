@@ -11,7 +11,11 @@ struct TriangleWrapper<'a, G: TriangleTrait<T = f64>>(&'a G);
 
 impl<'a, G: TriangleTrait<T = f64>> LineStringTrait for &'a TriangleWrapper<'a, G> {
     type T = f64;
-    type CoordType<'b> = G::CoordType<'a> where G: 'b, Self: 'b;
+    type CoordType<'b>
+        = G::CoordType<'a>
+    where
+        G: 'b,
+        Self: 'b;
 
     fn dim(&self) -> geo_traits::Dimensions {
         self.0.dim()
@@ -31,9 +35,13 @@ impl<'a, G: TriangleTrait<T = f64>> LineStringTrait for &'a TriangleWrapper<'a, 
     }
 }
 
-impl<'a, G: TriangleTrait<T = f64>> PolygonTrait for TriangleWrapper<'a, G> {
+impl<G: TriangleTrait<T = f64>> PolygonTrait for TriangleWrapper<'_, G> {
     type T = f64;
-    type RingType<'b> = &'b TriangleWrapper<'b, G> where G: 'b, Self: 'b;
+    type RingType<'b>
+        = &'b TriangleWrapper<'b, G>
+    where
+        G: 'b,
+        Self: 'b;
 
     fn dim(&self) -> geo_traits::Dimensions {
         self.0.dim()

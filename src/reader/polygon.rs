@@ -64,7 +64,10 @@ impl<'a> Polygon<'a> {
 
 impl<'a> PolygonTrait for Polygon<'a> {
     type T = f64;
-    type RingType<'b> = WKBLinearRing<'a>where Self: 'b;
+    type RingType<'b>
+        = WKBLinearRing<'a>
+    where
+        Self: 'b;
 
     fn dim(&self) -> Dimensions {
         self.dim.into()
@@ -94,7 +97,10 @@ impl<'a> PolygonTrait for Polygon<'a> {
 
 impl<'a> PolygonTrait for &'a Polygon<'a> {
     type T = f64;
-    type RingType<'b> = WKBLinearRing<'a> where Self: 'b;
+    type RingType<'b>
+        = WKBLinearRing<'a>
+    where
+        Self: 'b;
 
     fn dim(&self) -> Dimensions {
         self.dim.into()

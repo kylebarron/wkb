@@ -80,7 +80,7 @@ impl<'a> Coord<'a> {
     }
 }
 
-impl<'a> CoordTrait for Coord<'a> {
+impl CoordTrait for Coord<'_> {
     type T = f64;
 
     fn dim(&self) -> Dimensions {
