@@ -112,7 +112,7 @@ impl WKBType {
             0 => WKBDimension::Xy,
             1 => WKBDimension::Xyz,
             2 => WKBDimension::Xym,
-            3 => WKBDimension::Xyz,
+            3 => WKBDimension::Xyzm,
             _ => {
                 return Err(WKBError::General(format!(
                     "WKB dimension value out of range. Got: {}",
