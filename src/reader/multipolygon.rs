@@ -58,7 +58,10 @@ impl<'a> MultiPolygon<'a> {
 
 impl<'a> MultiPolygonTrait for MultiPolygon<'a> {
     type T = f64;
-    type PolygonType<'b> = Polygon<'a> where Self: 'b;
+    type PolygonType<'b>
+        = Polygon<'a>
+    where
+        Self: 'b;
 
     fn dim(&self) -> Dimensions {
         self.dim.into()
@@ -75,7 +78,10 @@ impl<'a> MultiPolygonTrait for MultiPolygon<'a> {
 
 impl<'a> MultiPolygonTrait for &'a MultiPolygon<'a> {
     type T = f64;
-    type PolygonType<'b> = Polygon<'a> where Self: 'b;
+    type PolygonType<'b>
+        = Polygon<'a>
+    where
+        Self: 'b;
 
     fn dim(&self) -> Dimensions {
         self.dim.into()

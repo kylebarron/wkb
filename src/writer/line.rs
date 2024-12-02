@@ -11,7 +11,11 @@ struct LineWrapper<'a, G: LineTrait<T = f64>>(&'a G);
 
 impl<'a, G: LineTrait<T = f64>> LineStringTrait for LineWrapper<'a, G> {
     type T = f64;
-    type CoordType<'b> = G::CoordType<'a> where G: 'b, Self: 'b;
+    type CoordType<'b>
+        = G::CoordType<'a>
+    where
+        G: 'b,
+        Self: 'b;
 
     fn dim(&self) -> geo_traits::Dimensions {
         self.0.dim()

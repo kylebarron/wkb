@@ -67,7 +67,10 @@ impl<'a> WKBLinearRing<'a> {
 
 impl<'a> LineStringTrait for WKBLinearRing<'a> {
     type T = f64;
-    type CoordType<'b> = Coord<'a> where Self: 'b;
+    type CoordType<'b>
+        = Coord<'a>
+    where
+        Self: 'b;
 
     fn dim(&self) -> Dimensions {
         self.dim.into()
