@@ -25,8 +25,8 @@ jobs:
         run: |
           rustc --version
           cargo --version
-          sudo apt-get update
-          sudo apt-get install -y libgeos-dev
+          apt-get update
+          apt-get install -y libgeos-dev
       - name: Checkout repository
         uses: actions/checkout@v2
       - run: cargo fmt --all -- --check
