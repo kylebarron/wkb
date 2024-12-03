@@ -24,6 +24,7 @@ pub struct LineString<'a> {
     /// LineString contained within a MultiLineString
     offset: u64,
     dim: WKBDimension,
+    has_srid: bool,
 }
 
 impl<'a> LineString<'a> {
@@ -43,6 +44,7 @@ impl<'a> LineString<'a> {
             num_points,
             offset,
             dim,
+            has_srid,
         }
     }
 
@@ -54,7 +56,11 @@ impl<'a> LineString<'a> {
         // - 4: wkbType
         // - 4: numPoints
         // - 2 * 8 * self.num_points: two f64s for each coordinate
-        1 + 4 + 4 + (self.dim.size() as u64 * 8 * self.num_points as u64)
+        let mut header = 1 + 4 + 4;
+        if self.has_srid {
+            header += 4;
+        }
+        header + (self.dim.size() as u64 * 8 * self.num_points as u64)
     }
 
     /// The offset into this buffer of any given coordinate

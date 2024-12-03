@@ -17,6 +17,7 @@ pub struct MultiPolygon<'a> {
     wkb_polygons: Vec<Polygon<'a>>,
 
     dim: WKBDimension,
+    has_srid: bool,
 }
 
 impl<'a> MultiPolygon<'a> {
@@ -46,7 +47,11 @@ impl<'a> MultiPolygon<'a> {
             wkb_polygons.push(polygon);
         }
 
-        Self { wkb_polygons, dim }
+        Self {
+            wkb_polygons,
+            dim,
+            has_srid,
+        }
     }
 
     /// The number of bytes in this object, including any header
@@ -56,9 +61,13 @@ impl<'a> MultiPolygon<'a> {
         // - 1: byteOrder
         // - 4: wkbType
         // - 4: numPolygons
+        let mut header = 1 + 4 + 4;
+        if self.has_srid {
+            header += 4;
+        }
         self.wkb_polygons
             .iter()
-            .fold(1 + 4 + 4, |acc, x| acc + x.size())
+            .fold(header, |acc, x| acc + x.size())
     }
 
     pub fn dimension(&self) -> WKBDimension {

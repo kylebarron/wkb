@@ -17,6 +17,7 @@ pub struct MultiLineString<'a> {
     /// A LineString object for each of the internal line strings
     wkb_line_strings: Vec<LineString<'a>>,
     dim: WKBDimension,
+    has_srid: bool,
 }
 
 impl<'a> MultiLineString<'a> {
@@ -49,6 +50,7 @@ impl<'a> MultiLineString<'a> {
         Self {
             wkb_line_strings,
             dim,
+            has_srid,
         }
     }
 
@@ -60,9 +62,13 @@ impl<'a> MultiLineString<'a> {
         // - 4: wkbType
         // - 4: numPoints
         // - Point::size() * self.num_points: the size of each Point for each point
+        let mut header = 1 + 4 + 4;
+        if self.has_srid {
+            header += 4;
+        }
         self.wkb_line_strings
             .iter()
-            .fold(1 + 4 + 4, |acc, ls| acc + ls.size())
+            .fold(header, |acc, ls| acc + ls.size())
     }
 
     pub fn dimension(&self) -> WKBDimension {

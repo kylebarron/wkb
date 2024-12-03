@@ -17,6 +17,7 @@ const HEADER_BYTES: u64 = 5;
 pub struct Polygon<'a> {
     wkb_linear_rings: Vec<WKBLinearRing<'a>>,
     dim: WKBDimension,
+    has_srid: bool,
 }
 
 impl<'a> Polygon<'a> {
@@ -46,6 +47,7 @@ impl<'a> Polygon<'a> {
         Self {
             wkb_linear_rings,
             dim,
+            has_srid,
         }
     }
 
@@ -57,9 +59,14 @@ impl<'a> Polygon<'a> {
         // - 4: wkbType
         // - 4: numPoints
         // - size of each linear ring
+        let mut header = 1 + 4 + 4;
+        if self.has_srid {
+            header += 4;
+        }
+
         self.wkb_linear_rings
             .iter()
-            .fold(1 + 4 + 4, |acc, ring| acc + ring.size())
+            .fold(header, |acc, ring| acc + ring.size())
     }
 
     pub fn dimension(&self) -> WKBDimension {
