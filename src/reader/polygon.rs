@@ -2,7 +2,7 @@ use std::io::Cursor;
 
 use crate::common::WKBDimension;
 use crate::reader::linearring::WKBLinearRing;
-use crate::reader::util::ReadBytesExt;
+use crate::reader::util::{has_srid, ReadBytesExt};
 use crate::Endianness;
 use geo_traits::Dimensions;
 use geo_traits::PolygonTrait;
@@ -20,7 +20,12 @@ pub struct Polygon<'a> {
 }
 
 impl<'a> Polygon<'a> {
-    pub fn new(buf: &'a [u8], byte_order: Endianness, offset: u64, dim: WKBDimension) -> Self {
+    pub fn new(buf: &'a [u8], byte_order: Endianness, mut offset: u64, dim: WKBDimension) -> Self {
+        let has_srid = has_srid(buf, byte_order, offset);
+        if has_srid {
+            offset += 4;
+        }
+
         let mut reader = Cursor::new(buf);
         reader.set_position(HEADER_BYTES + offset);
 

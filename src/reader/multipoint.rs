@@ -2,7 +2,7 @@ use std::io::Cursor;
 
 use crate::common::WKBDimension;
 use crate::reader::point::Point;
-use crate::reader::util::ReadBytesExt;
+use crate::reader::util::{has_srid, ReadBytesExt};
 use crate::Endianness;
 use geo_traits::Dimensions;
 use geo_traits::MultiPointTrait;
@@ -18,14 +18,20 @@ pub struct MultiPoint<'a> {
     /// The number of points in this multi point
     num_points: usize,
     dim: WKBDimension,
+    has_srid: bool,
 }
 
 impl<'a> MultiPoint<'a> {
     pub(crate) fn new(buf: &'a [u8], byte_order: Endianness, dim: WKBDimension) -> Self {
-        // TODO: assert WKB type?
+        let mut offset = 0;
+        let has_srid = has_srid(buf, byte_order, offset);
+        if has_srid {
+            offset += 4;
+        }
+
         let mut reader = Cursor::new(buf);
         // Set reader to after 1-byte byteOrder and 4-byte wkbType
-        reader.set_position(1 + 4);
+        reader.set_position(1 + 4 + offset);
         let num_points = reader.read_u32(byte_order).unwrap().try_into().unwrap();
 
         Self {
@@ -33,6 +39,7 @@ impl<'a> MultiPoint<'a> {
             byte_order,
             num_points,
             dim,
+            has_srid,
         }
     }
 
@@ -44,12 +51,23 @@ impl<'a> MultiPoint<'a> {
         // - 4: wkbType
         // - 4: numPoints
         // - Point::size() * self.num_points: the size of each Point for each point
-        1 + 4 + 4 + ((1 + 4 + (self.dim.size() as u64 * 8)) * self.num_points as u64)
+        let mut header = 1 + 4 + 4;
+        if self.has_srid {
+            header += 4;
+        }
+        header + ((1 + 4 + (self.dim.size() as u64 * 8)) * self.num_points as u64)
     }
 
     /// The offset into this buffer of any given Point
     pub fn point_offset(&self, i: u64) -> u64 {
-        1 + 4 + 4 + ((1 + 4 + (self.dim.size() as u64 * 8)) * i)
+        // - 1: byteOrder
+        // - 4: wkbType
+        // - 4: numPoints
+        let mut header = 1 + 4 + 4;
+        if self.has_srid {
+            header += 4;
+        }
+        header + ((1 + 4 + (self.dim.size() as u64 * 8)) * i)
     }
 
     pub fn dimension(&self) -> WKBDimension {

@@ -2,7 +2,7 @@ use std::io::Cursor;
 
 use crate::common::WKBDimension;
 use crate::reader::linestring::LineString;
-use crate::reader::util::ReadBytesExt;
+use crate::reader::util::{has_srid, ReadBytesExt};
 use crate::Endianness;
 use geo_traits::Dimensions;
 use geo_traits::MultiLineStringTrait;
@@ -21,14 +21,24 @@ pub struct MultiLineString<'a> {
 
 impl<'a> MultiLineString<'a> {
     pub(crate) fn new(buf: &'a [u8], byte_order: Endianness, dim: WKBDimension) -> Self {
+        let mut offset = 0;
+        let has_srid = has_srid(buf, byte_order, offset);
+        if has_srid {
+            offset += 4;
+        }
+
         let mut reader = Cursor::new(buf);
-        reader.set_position(HEADER_BYTES);
+        reader.set_position(HEADER_BYTES + offset);
         let num_line_strings = reader.read_u32(byte_order).unwrap().try_into().unwrap();
 
         // - 1: byteOrder
         // - 4: wkbType
         // - 4: numLineStrings
         let mut line_string_offset = 1 + 4 + 4;
+        if has_srid {
+            line_string_offset += 4;
+        }
+
         let mut wkb_line_strings = Vec::with_capacity(num_line_strings);
         for _ in 0..num_line_strings {
             let ls = LineString::new(buf, byte_order, line_string_offset, dim);

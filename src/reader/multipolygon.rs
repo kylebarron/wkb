@@ -2,7 +2,7 @@ use std::io::Cursor;
 
 use crate::common::WKBDimension;
 use crate::reader::polygon::Polygon;
-use crate::reader::util::ReadBytesExt;
+use crate::reader::util::{has_srid, ReadBytesExt};
 use crate::Endianness;
 use geo_traits::Dimensions;
 use geo_traits::MultiPolygonTrait;
@@ -21,14 +21,24 @@ pub struct MultiPolygon<'a> {
 
 impl<'a> MultiPolygon<'a> {
     pub(crate) fn new(buf: &'a [u8], byte_order: Endianness, dim: WKBDimension) -> Self {
+        let mut offset = 0;
+        let has_srid = has_srid(buf, byte_order, offset);
+        if has_srid {
+            offset += 4;
+        }
+
         let mut reader = Cursor::new(buf);
-        reader.set_position(HEADER_BYTES);
+        reader.set_position(HEADER_BYTES + offset);
         let num_polygons = reader.read_u32(byte_order).unwrap().try_into().unwrap();
 
         // - 1: byteOrder
         // - 4: wkbType
         // - 4: numLineStrings
         let mut polygon_offset = 1 + 4 + 4;
+        if has_srid {
+            polygon_offset += 4;
+        }
+
         let mut wkb_polygons = Vec::with_capacity(num_polygons);
         for _ in 0..num_polygons {
             let polygon = Polygon::new(buf, byte_order, polygon_offset, dim);
