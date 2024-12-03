@@ -2,7 +2,7 @@ use std::io::Cursor;
 
 use crate::common::WKBDimension;
 use crate::reader::polygon::Polygon;
-use crate::reader::util::ReadBytesExt;
+use crate::reader::util::{has_srid, ReadBytesExt};
 use crate::Endianness;
 use geo_traits::Dimensions;
 use geo_traits::MultiPolygonTrait;
@@ -17,18 +17,29 @@ pub struct MultiPolygon<'a> {
     wkb_polygons: Vec<Polygon<'a>>,
 
     dim: WKBDimension,
+    has_srid: bool,
 }
 
 impl<'a> MultiPolygon<'a> {
     pub(crate) fn new(buf: &'a [u8], byte_order: Endianness, dim: WKBDimension) -> Self {
+        let mut offset = 0;
+        let has_srid = has_srid(buf, byte_order, offset);
+        if has_srid {
+            offset += 4;
+        }
+
         let mut reader = Cursor::new(buf);
-        reader.set_position(HEADER_BYTES);
+        reader.set_position(HEADER_BYTES + offset);
         let num_polygons = reader.read_u32(byte_order).unwrap().try_into().unwrap();
 
         // - 1: byteOrder
         // - 4: wkbType
         // - 4: numLineStrings
         let mut polygon_offset = 1 + 4 + 4;
+        if has_srid {
+            polygon_offset += 4;
+        }
+
         let mut wkb_polygons = Vec::with_capacity(num_polygons);
         for _ in 0..num_polygons {
             let polygon = Polygon::new(buf, byte_order, polygon_offset, dim);
@@ -36,7 +47,11 @@ impl<'a> MultiPolygon<'a> {
             wkb_polygons.push(polygon);
         }
 
-        Self { wkb_polygons, dim }
+        Self {
+            wkb_polygons,
+            dim,
+            has_srid,
+        }
     }
 
     /// The number of bytes in this object, including any header
@@ -46,9 +61,13 @@ impl<'a> MultiPolygon<'a> {
         // - 1: byteOrder
         // - 4: wkbType
         // - 4: numPolygons
+        let mut header = 1 + 4 + 4;
+        if self.has_srid {
+            header += 4;
+        }
         self.wkb_polygons
             .iter()
-            .fold(1 + 4 + 4, |acc, x| acc + x.size())
+            .fold(header, |acc, x| acc + x.size())
     }
 
     pub fn dimension(&self) -> WKBDimension {

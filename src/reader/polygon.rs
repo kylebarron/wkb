@@ -2,7 +2,7 @@ use std::io::Cursor;
 
 use crate::common::WKBDimension;
 use crate::reader::linearring::WKBLinearRing;
-use crate::reader::util::ReadBytesExt;
+use crate::reader::util::{has_srid, ReadBytesExt};
 use crate::Endianness;
 use geo_traits::Dimensions;
 use geo_traits::PolygonTrait;
@@ -17,10 +17,16 @@ const HEADER_BYTES: u64 = 5;
 pub struct Polygon<'a> {
     wkb_linear_rings: Vec<WKBLinearRing<'a>>,
     dim: WKBDimension,
+    has_srid: bool,
 }
 
 impl<'a> Polygon<'a> {
-    pub fn new(buf: &'a [u8], byte_order: Endianness, offset: u64, dim: WKBDimension) -> Self {
+    pub fn new(buf: &'a [u8], byte_order: Endianness, mut offset: u64, dim: WKBDimension) -> Self {
+        let has_srid = has_srid(buf, byte_order, offset);
+        if has_srid {
+            offset += 4;
+        }
+
         let mut reader = Cursor::new(buf);
         reader.set_position(HEADER_BYTES + offset);
 
@@ -41,6 +47,7 @@ impl<'a> Polygon<'a> {
         Self {
             wkb_linear_rings,
             dim,
+            has_srid,
         }
     }
 
@@ -52,9 +59,14 @@ impl<'a> Polygon<'a> {
         // - 4: wkbType
         // - 4: numPoints
         // - size of each linear ring
+        let mut header = 1 + 4 + 4;
+        if self.has_srid {
+            header += 4;
+        }
+
         self.wkb_linear_rings
             .iter()
-            .fold(1 + 4 + 4, |acc, ring| acc + ring.size())
+            .fold(header, |acc, ring| acc + ring.size())
     }
 
     pub fn dimension(&self) -> WKBDimension {

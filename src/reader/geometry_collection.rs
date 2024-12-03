@@ -3,7 +3,7 @@ use std::io::Cursor;
 use crate::common::WKBDimension;
 use crate::error::WKBResult;
 use crate::reader::geometry::Wkb;
-use crate::reader::util::ReadBytesExt;
+use crate::reader::util::{has_srid, ReadBytesExt};
 use crate::Endianness;
 use geo_traits::{Dimensions, GeometryCollectionTrait};
 
@@ -16,18 +16,29 @@ pub struct GeometryCollection<'a> {
     /// A WKB object for each of the internal geometries
     geometries: Vec<Wkb<'a>>,
     dim: WKBDimension,
+    has_srid: bool,
 }
 
 impl<'a> GeometryCollection<'a> {
     pub fn try_new(buf: &'a [u8], byte_order: Endianness, dim: WKBDimension) -> WKBResult<Self> {
+        let mut offset = 0;
+        let has_srid = has_srid(buf, byte_order, offset);
+        if has_srid {
+            offset += 4;
+        }
+
         let mut reader = Cursor::new(buf);
-        reader.set_position(HEADER_BYTES);
+        reader.set_position(HEADER_BYTES + offset);
         let num_geometries = reader.read_u32(byte_order).unwrap().try_into().unwrap();
 
         // - 1: byteOrder
         // - 4: wkbType
         // - 4: numGeometries
         let mut geometry_offset = 1 + 4 + 4;
+        if has_srid {
+            geometry_offset += 4;
+        }
+
         let mut geometries = Vec::with_capacity(num_geometries);
         for _ in 0..num_geometries {
             let geometry = Wkb::try_new(&buf[geometry_offset..])?;
@@ -35,7 +46,11 @@ impl<'a> GeometryCollection<'a> {
             geometries.push(geometry);
         }
 
-        Ok(Self { geometries, dim })
+        Ok(Self {
+            geometries,
+            dim,
+            has_srid,
+        })
     }
 
     pub fn dimension(&self) -> WKBDimension {
@@ -46,9 +61,11 @@ impl<'a> GeometryCollection<'a> {
         // - 1: byteOrder
         // - 4: wkbType
         // - 4: numGeometries
-        self.geometries
-            .iter()
-            .fold(1 + 4 + 4, |acc, x| acc + x.size())
+        let mut header = 1 + 4 + 4;
+        if self.has_srid {
+            header += 4;
+        }
+        self.geometries.iter().fold(header, |acc, x| acc + x.size())
     }
 }
 

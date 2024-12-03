@@ -1,5 +1,6 @@
 use crate::common::WKBDimension;
 use crate::reader::coord::Coord;
+use crate::reader::util::has_srid;
 use crate::Endianness;
 use geo_traits::Dimensions;
 use geo_traits::{CoordTrait, PointTrait};
@@ -15,12 +16,25 @@ pub struct Point<'a> {
     coord: Coord<'a>,
     dim: WKBDimension,
     is_empty: bool,
+    has_srid: bool,
 }
 
 impl<'a> Point<'a> {
-    pub fn new(buf: &'a [u8], byte_order: Endianness, offset: u64, dim: WKBDimension) -> Self {
+    pub(crate) fn new(
+        buf: &'a [u8],
+        byte_order: Endianness,
+        offset: u64,
+        dim: WKBDimension,
+    ) -> Self {
+        let has_srid = has_srid(buf, byte_order, offset);
+
         // The space of the byte order + geometry type
-        let offset = offset + 5;
+        let mut offset = offset + 5;
+        if has_srid {
+            // Skip SRID bytes if they exist
+            offset += 4;
+        }
+
         let coord = Coord::new(buf, byte_order, offset, dim);
         let is_empty = (0..coord.dim().size()).all(|coord_dim| {
             {
@@ -35,6 +49,7 @@ impl<'a> Point<'a> {
             coord,
             dim,
             is_empty,
+            has_srid,
         }
     }
 
@@ -44,9 +59,12 @@ impl<'a> Point<'a> {
     pub fn size(&self) -> u64 {
         // - 1: byteOrder
         // - 4: wkbType
-        // - 4: numPoints
         // - dim size * 8: two f64s
-        1 + 4 + (self.dim.size() as u64 * 8)
+        let mut header = 1 + 4;
+        if self.has_srid {
+            header += 4;
+        }
+        header + (self.dim.size() as u64 * 8)
     }
 
     pub fn dimension(&self) -> WKBDimension {

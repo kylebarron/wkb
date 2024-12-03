@@ -17,6 +17,7 @@ A fast, freely-licensed implementation of reading and writing the [Well-Known Bi
 - Reading and write without copying to an intermediate representation, thanks to [`geo_traits`][geo_traits].
 - Full support for Z, M, and ZM dimension data.
 - Full support for little-endian and big-endian data, in both reading and writing.
+- Read support for extended Well-Known Binary (EWKB). Any embedded SRID is currently ignored.
 - MIT and Apache 2 license.
 
 [geo_traits]: https://docs.rs/geo-traits/latest/geo_traits/

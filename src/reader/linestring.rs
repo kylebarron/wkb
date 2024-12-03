@@ -2,7 +2,7 @@ use std::io::Cursor;
 
 use crate::common::WKBDimension;
 use crate::reader::coord::Coord;
-use crate::reader::util::ReadBytesExt;
+use crate::reader::util::{has_srid, ReadBytesExt};
 use crate::Endianness;
 use geo_traits::Dimensions;
 use geo_traits::LineStringTrait;
@@ -24,10 +24,16 @@ pub struct LineString<'a> {
     /// LineString contained within a MultiLineString
     offset: u64,
     dim: WKBDimension,
+    has_srid: bool,
 }
 
 impl<'a> LineString<'a> {
-    pub fn new(buf: &'a [u8], byte_order: Endianness, offset: u64, dim: WKBDimension) -> Self {
+    pub fn new(buf: &'a [u8], byte_order: Endianness, mut offset: u64, dim: WKBDimension) -> Self {
+        let has_srid = has_srid(buf, byte_order, offset);
+        if has_srid {
+            offset += 4;
+        }
+
         let mut reader = Cursor::new(buf);
         reader.set_position(HEADER_BYTES + offset);
         let num_points = reader.read_u32(byte_order).unwrap().try_into().unwrap();
@@ -38,6 +44,7 @@ impl<'a> LineString<'a> {
             num_points,
             offset,
             dim,
+            has_srid,
         }
     }
 
@@ -49,7 +56,11 @@ impl<'a> LineString<'a> {
         // - 4: wkbType
         // - 4: numPoints
         // - 2 * 8 * self.num_points: two f64s for each coordinate
-        1 + 4 + 4 + (self.dim.size() as u64 * 8 * self.num_points as u64)
+        let mut header = 1 + 4 + 4;
+        if self.has_srid {
+            header += 4;
+        }
+        header + (self.dim.size() as u64 * 8 * self.num_points as u64)
     }
 
     /// The offset into this buffer of any given coordinate
